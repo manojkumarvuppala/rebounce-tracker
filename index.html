@@ -61,14 +61,13 @@
         // FIREBASE CONFIGURATION (REPLACE WITH YOURS)
         // ==========================================
         const firebaseConfig = {
-            apiKey: "AIzaSyBLq_vb2DG8w8rLci4p4Nx7uhE2ZjYvjn8",
-            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_ID.appspot.com",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
-
+  apiKey: "AIzaSyBLq_vb2DG8w8rLci4p4Nx7uhE2ZjYvjn8",
+  authDomain: "rebounce-tracker.firebaseapp.com",
+  projectId: "rebounce-tracker",
+  storageBucket: "rebounce-tracker.firebasestorage.app",
+  messagingSenderId: "497476611656",
+  appId: "1:497476611656:web:6bf41a726689078474b27d"
+};
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'rebounce-tracker-v2';
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
