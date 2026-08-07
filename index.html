@@ -23,51 +23,54 @@
         <!-- INITIAL LOADING SCREEN -->
         <div id="loadingView" class="h-full flex flex-col items-center justify-center bg-white z-50 absolute inset-0">
             <div class="loader mb-4"></div>
-            <p class="text-sm text-gray-500 font-medium tracking-wide">Connecting to Cloud...</p>
+            <p class="text-sm text-gray-500 font-medium tracking-wide mt-2" id="loadingText">Connecting to Cloud...</p>
         </div>
 
+        <!-- LOGIN SCREEN -->
         <div id="loginView" class="h-full flex flex-col justify-center px-8 bg-white z-40 absolute inset-0 hidden">
             <div class="flex justify-center mb-6">
-                <div class="w-16 h-16 bg-indigo-600 rounded-2xl shadow-lg flex items-center justify-center text-white text-2xl font-bold">R2</div>
+                <div class="bg-[#1e293b] rounded-xl shadow-lg flex items-center justify-center text-white px-8 py-5 text-2xl font-bold w-full">Rebounds 2.0</div>
             </div>
-            <h2 class="text-2xl font-bold text-center text-slate-800 mb-2">Welcome Student</h2>
-            <p class="text-sm text-center text-gray-500 mb-8">Enter your phone number to sign in. Your progress will be saved automatically.</p>
+            <p class="text-sm text-center text-gray-500 mb-8 mt-2">Enter your phone number to sign in. Your progress will be saved automatically across devices.</p>
             
-            <input type="tel" id="phoneInput" placeholder="Enter mobile number" class="w-full px-4 py-3 border border-gray-300 rounded-xl mb-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium text-lg" pattern="[0-9]*">
-            <button id="signInBtn" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 transition active:scale-95 shadow-md" onclick="handlePhoneSignIn()">Sign In Securely</button>
+            <input type="tel" id="phoneInput" placeholder="Enter mobile number" class="w-full px-4 py-3 border border-gray-300 rounded-xl mb-4 focus:outline-none focus:ring-2 focus:ring-[#1e293b] font-medium text-lg" pattern="[0-9]*">
+            <button id="signInBtn" class="w-full bg-[#1e293b] text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition active:scale-95 shadow-md" onclick="handlePhoneSignIn()">Sign In</button>
             
             <div id="loginErrorBox" class="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg hidden">
                 <p id="loginMessage" class="text-xs text-red-600 font-medium text-center"></p>
             </div>
         </div>
 
-        <header class="bg-indigo-700 text-white px-4 py-4 flex items-center justify-between shadow-md z-10 shrink-0 hidden" id="mainHeader">
-            <button id="backBtn" class="text-white p-2 -ml-2 hidden rounded-full hover:bg-indigo-600 transition" onclick="goBack()">
+        <!-- HEADER -->
+        <header class="bg-[#1e293b] text-white px-4 py-4 flex items-center justify-between shadow-md z-10 shrink-0 hidden" id="mainHeader">
+            <button id="backBtn" class="text-white p-2 -ml-2 hidden rounded-full hover:bg-slate-700 transition" onclick="goBack()">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
             </button>
-            <h1 id="headerTitle" class="text-xl font-bold tracking-wide flex-1 text-center">Rebounce 2.0</h1>
+            <h1 id="headerTitle" class="text-xl font-bold tracking-wide flex-1 text-center">Rebounds 2.0</h1>
             <div class="w-8"></div>
         </header>
 
+        <!-- MAIN CONTENT AREA -->
         <main id="mainContent" class="flex-1 overflow-y-auto bg-gray-50 p-4 pb-24 hidden"></main>
 
-        <!-- Profile Overlay -->
+        <!-- PROFILE OVERLAY -->
         <div id="profileOverlay" class="absolute inset-0 bg-white z-30 hidden flex flex-col p-6 pt-12">
             <h2 class="text-2xl font-bold text-slate-800 mb-6">Profile & Settings</h2>
             <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-4 shadow-sm">
                 <p class="text-xs text-gray-500 uppercase tracking-wider font-bold mb-1">Logged in as (Phone)</p>
-                <p class="text-xl font-bold text-indigo-700 tracking-wide" id="profilePhoneDisplay">Loading...</p>
+                <p class="text-xl font-bold text-[#1e293b] tracking-wide" id="profilePhoneDisplay">Loading...</p>
             </div>
             <button onclick="handleSignOut()" class="w-full py-3 bg-red-50 text-red-600 font-bold rounded-xl border border-red-200 mt-auto mb-16 active:scale-95 transition">Sign Out</button>
         </div>
 
-        <!-- Custom Toast Notification System -->
+        <!-- TOAST NOTIFICATION -->
         <div id="toast" class="absolute bottom-20 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-2 rounded-full shadow-lg transition-opacity duration-300 opacity-0 pointer-events-none z-50 text-sm font-medium flex items-center">
             <span id="toastMsg">Saved!</span>
         </div>
 
+        <!-- BOTTOM NAVIGATION -->
         <nav class="bg-white border-t border-gray-200 shrink-0 px-6 py-3 flex justify-between items-center z-20 hidden shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]" id="bottomNav">
-            <button class="flex flex-col items-center nav-btn text-indigo-600" id="navHome" onclick="showDashboard()">
+            <button class="flex flex-col items-center nav-btn text-[#1e293b]" id="navHome" onclick="showDashboard()">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
                 <span class="text-[10px] mt-1 font-semibold">Home</span>
             </button>
@@ -87,17 +90,16 @@
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-        // ======================================================================
-        // FIREBASE CONFIGURATION (LOCKED IN)
-        // ======================================================================
-        const firebaseConfig = {
-            apiKey: "AIzaSyBLq_vb2DG8w8rLci4p4Nx7uhE2ZjYvjn8",
-            authDomain: "rebounce-tracker.firebaseapp.com",
-            projectId: "rebounce-tracker",
-            storageBucket: "rebounce-tracker.firebasestorage.app",
-            messagingSenderId: "497476611656",
-            appId: "1:497476611656:web:6bf41a726689078474b27d"
-        };
+        // !!! IMPORTANT: PASTE YOUR NEW TEST-MODE PROJECT KEYS HERE !!!
+       const firebaseConfig = {
+  apiKey: "AIzaSyCBqpXBVLDXtyoqYVoJkcHrVAT6vFwrf-Y",
+  authDomain: "rebounce-app-v2.firebaseapp.com",
+  projectId: "rebounce-app-v2",
+  storageBucket: "rebounce-app-v2.firebasestorage.app",
+  messagingSenderId: "410715965243",
+  appId: "1:410715965243:web:fda1a03f130714ca72591e",
+  measurementId: "G-LPRDTWBJWS"
+};
 
         let app, auth, db;
         try {
@@ -106,16 +108,16 @@
             db = getFirestore(app);
         } catch (e) {
             console.warn("Firebase Init Error:", e);
+            document.getElementById('loadingText').textContent = "Database Error. Check Console.";
         }
 
-        // --- Custom UI Toast Notifications (Replaces alert()) ---
         window.showToast = function(message, isError = false) {
             const toast = document.getElementById('toast');
             const msgSpan = document.getElementById('toastMsg');
             msgSpan.textContent = message;
             toast.className = `absolute bottom-20 left-1/2 transform -translate-x-1/2 px-6 py-2 rounded-full shadow-lg transition-opacity duration-300 pointer-events-none z-50 text-sm font-medium flex items-center ${isError ? 'bg-red-600 text-white' : 'bg-slate-800 text-white'}`;
             toast.style.opacity = '1';
-            setTimeout(() => { toast.style.opacity = '0'; }, 2500);
+            setTimeout(() => { toast.style.opacity = '0'; }, 3000);
         };
 
         function showLoginError(msg) {
@@ -156,7 +158,30 @@
             { title: "Geometrical Optics", vids: 0, subs: [{ t: "Geometrical Optics", v: 70 }, { t: "Optical Instruments", v: 7 }] },
             { title: "Magnetic Effects of Current", vids: 0, subs: [{ t: "Magnetic Effect of Current", v: 7 }, { t: "Electromagnetic Forces", v: 8 }, { t: "Magnetic Properties", v: 4 }] },
             { title: "Rigid Body Dynamics (RBD)", vids: 0, subs: [{ t: "Rotational Motion", v: 18 }] },
-            { title: "Wave Optics", vids: 11, subs: [] }
+            { title: "Wave Optics", vids: 11, subs: [] },
+            { title: "Gravitation", vids: 6, subs: [] },
+            { title: "Alternating Current (AC)", vids: 6, subs: [] },
+            { title: "Error & Measurement", vids: 5, subs: [] },
+            { title: "Solids & Semiconductors", vids: 0, subs: [{ t: "Semiconductors", v: 9 }, { t: "Communication System", v: 3 }] },
+            { title: "Elasticity & Viscosity", vids: 0, subs: [{ t: "Viscosity", v: 2 }, { t: "Elasticity", v: 3 }] },
+            { title: "NLM & Friction", vids: 0, subs: [{ t: "Newton's Law of Motion", v: 9 }, { t: "Friction", v: 6 }] },
+            { title: "Capacitor", vids: 0, subs: [{ t: "Capacitance", v: 12 }] },
+            { title: "Electromagnetic Waves", vids: 4, subs: [] },
+            { title: "Work, Power & Energy", vids: 11, subs: [] },
+            { title: "Rectilinear Motion", vids: 0, subs: [{ t: "Rectilinear Motion", v: 9 }, { t: "Kinematics", v: 3 }] },
+            { title: "EMI", vids: 0, subs: [{ t: "Electromagnetic Induction", v: 14 }] },
+            { title: "Simple Harmonic Motion", vids: 11, subs: [] },
+            { title: "Circular Motion", vids: 10, subs: [] },
+            { title: "Fluid Mechanics", vids: 9, subs: [] },
+            { title: "Surface Tension", vids: 5, subs: [] },
+            { title: "Center of Mass (COM)", vids: 10, subs: [] },
+            { title: "Projectile Motion", vids: 12, subs: [] },
+            { title: "Sound Waves", vids: 14, subs: [] },
+            { title: "Wave on a String", vids: 12, subs: [] },
+            { title: "Calorimetry & Thermal Exp.", vids: 0, subs: [{ t: "Calorimetry", v: 3 }, { t: "Thermal Expansion", v: 3 }] },
+            { title: "Mathematical Tools", vids: 35, subs: [] },
+            { title: "Heat Transfer", vids: 6, subs: [] },
+            { title: "Relative Motion", vids: 7, subs: [] }
         ];
 
         function generatePhysics() {
@@ -171,6 +196,7 @@
                     for(let i=1; i<=sub.v; i++) {
                         tasks.push({ id: `p_${chIdx}_${subIdx}_v${i}`, title: `Video ${i}`, type: 'video' });
                     }
+                    // Adding PYQ and Tests to EVERY subtopic automatically
                     tasks.push({ id: `p_${chIdx}_${subIdx}_res`, title: "Resonance Module", type: 'practice' });
                     tasks.push({ id: `p_${chIdx}_${subIdx}_test`, title: "Chapter-wise Test", type: 'test' });
                     tasks.push({ id: `p_${chIdx}_${subIdx}_pyq`, title: "Chapter-wise PYQs", type: 'pyq' });
@@ -216,17 +242,15 @@
         let currentSubjectId = null;
         let currentTopicId = null;
 
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'rebounce-app';
-
         window.handlePhoneSignIn = async function() {
             if(!auth || !db) { 
-                showLoginError("Firebase Keys missing. Please paste your API keys in the code to log in.");
+                showLoginError("System Error: Firebase not initialized properly. Check config.");
                 return; 
             }
             
             const phoneStr = document.getElementById('phoneInput').value.trim();
             if(phoneStr.length < 8) {
-                showLoginError('Please enter a valid phone number (minimum 8 digits).');
+                showLoginError('Please enter a valid phone number.');
                 return;
             }
 
@@ -239,38 +263,25 @@
             document.getElementById('loginErrorBox').classList.add('hidden');
 
             try {
-                // Attempt login first
+                // Attempt login
                 await signInWithEmailAndPassword(auth, dummyEmail, dummyPassword);
             } catch (error) {
-                console.error("Auth Error:", error.code);
-                
-                if (error.code === 'auth/too-many-requests') {
-                    showLoginError("Security block: Too many failed attempts. Please delete this user in Firebase Auth and try again.");
-                    btn.textContent = 'Sign In Securely';
-                    btn.disabled = false;
-                    return;
-                }
-                
-                // If it fails because user doesn't exist, instantly register them
+                // Create account if it doesn't exist
                 if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found') {
                     try {
                         await createUserWithEmailAndPassword(auth, dummyEmail, dummyPassword);
                     } catch (createError) {
-                        if (createError.code === 'auth/email-already-in-use') {
-                             showLoginError('Account locked/password changed. Please go to Firebase Console -> Authentication and DELETE this number, then try again.');
-                        } else {
-                            showLoginError('Registration Failed: ' + createError.message);
-                        }
-                        btn.textContent = 'Sign In Securely';
+                        showLoginError('Registration Failed: ' + createError.message);
+                        btn.textContent = 'Sign In';
                         btn.disabled = false;
                     }
-                } else if (error.code === 'auth/invalid-api-key') {
-                    showLoginError("CRITICAL: Your Firebase API Key is invalid. Check your code.");
-                    btn.textContent = 'Sign In Securely';
+                } else if (error.code === 'auth/too-many-requests') {
+                    showLoginError('Account temporarily blocked due to many attempts. Delete it in Firebase Auth and try again.');
+                    btn.textContent = 'Sign In';
                     btn.disabled = false;
                 } else {
                     showLoginError('Login Failed: ' + error.message);
-                    btn.textContent = 'Sign In Securely';
+                    btn.textContent = 'Sign In';
                     btn.disabled = false;
                 }
             }
@@ -281,32 +292,34 @@
             window.userProgress = {};
         }
 
+        // **NEW SIMPLIFIED SAVE LOGIC FOR TEST MODE**
         async function saveProgressToCloud() {
-            if(!currentUser || !db) {
-                showToast("Cannot save: Database offline.", true);
-                return;
-            }
+            if(!currentUser || !db) return;
             
-            showToast("Saving..."); // Show syncing status
+            showToast("Saving..."); 
             try {
-                const userDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'data', 'progress');
+                // Extremely simple path - perfect for Test Mode
+                const userDocRef = doc(db, 'users', currentUser.uid);
                 await setDoc(userDocRef, { progress: window.userProgress }, { merge: true });
                 showToast("Saved to Cloud!"); 
             } catch(e) { 
                 console.error("Save error", e);
-                showToast("Error saving to cloud! Check Firestore Rules.", true);
+                showToast("Error saving to Cloud: " + e.message, true);
             }
         }
 
         async function loadProgressFromCloud() {
             if(!currentUser || !db) return;
             try {
-                const userDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'data', 'progress');
+                // Extremely simple path - perfect for Test Mode
+                const userDocRef = doc(db, 'users', currentUser.uid);
                 const docSnap = await getDoc(userDocRef);
-                if (docSnap.exists()) window.userProgress = docSnap.data().progress || {};
+                if (docSnap.exists()) {
+                    window.userProgress = docSnap.data().progress || {};
+                }
             } catch(e) { 
                 console.error("Load error", e); 
-                showToast("Failed to load past progress.", true);
+                showToast("Failed to load past progress: " + e.message, true);
             }
         }
 
@@ -341,28 +354,21 @@
                     document.getElementById('profileOverlay').classList.add('hidden');
                     
                     const btn = document.getElementById('signInBtn');
-                    btn.textContent = 'Sign In Securely';
+                    btn.textContent = 'Sign In';
                     btn.disabled = false;
                 }
             });
-        } else {
-            // Preview / Offline Fallback if keys are not set yet
-            setTimeout(() => {
-                document.getElementById('loadingView').classList.add('hidden');
-                document.getElementById('loginView').classList.remove('hidden');
-                showLoginError("Firebase Keys missing. Please add your keys to the code to use the app.");
-            }, 500);
         }
 
         function updateNavState(activeTab) {
             document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('text-indigo-600');
+                btn.classList.remove('text-[#1e293b]');
                 btn.classList.add('text-gray-400');
             });
             const activeBtn = document.getElementById('nav' + activeTab);
             if(activeBtn) {
                 activeBtn.classList.remove('text-gray-400');
-                activeBtn.classList.add('text-indigo-600');
+                activeBtn.classList.add('text-[#1e293b]');
             }
         }
 
@@ -483,8 +489,8 @@
             let masterPct = totalTasks ? Math.round((totalCompleted/totalTasks)*100) : 0;
 
             let headerHtml = `
-                <div class="bg-indigo-700 text-white rounded-2xl p-6 mb-6 shadow-md text-center">
-                    <p class="text-indigo-200 text-xs uppercase tracking-widest font-bold mb-2">Total JEE Completion</p>
+                <div class="bg-[#1e293b] text-white rounded-2xl p-6 mb-6 shadow-md text-center">
+                    <p class="text-slate-300 text-xs uppercase tracking-widest font-bold mb-2">Total JEE Completion</p>
                     <div class="text-5xl font-black mb-2">${masterPct}%</div>
                     <p class="text-sm font-medium opacity-90">${totalCompleted} completed out of ${totalTasks} total tasks</p>
                 </div>
