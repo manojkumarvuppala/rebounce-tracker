@@ -216,6 +216,8 @@
         let currentSubjectId = null;
         let currentTopicId = null;
 
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'rebounce-app';
+
         window.handlePhoneSignIn = async function() {
             if(!auth || !db) { 
                 showLoginError("Firebase Keys missing. Please paste your API keys in the code to log in.");
@@ -242,12 +244,23 @@
             } catch (error) {
                 console.error("Auth Error:", error.code);
                 
+                if (error.code === 'auth/too-many-requests') {
+                    showLoginError("Security block: Too many failed attempts. Please delete this user in Firebase Auth and try again.");
+                    btn.textContent = 'Sign In Securely';
+                    btn.disabled = false;
+                    return;
+                }
+                
                 // If it fails because user doesn't exist, instantly register them
                 if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found') {
                     try {
                         await createUserWithEmailAndPassword(auth, dummyEmail, dummyPassword);
                     } catch (createError) {
-                        showLoginError('Registration Failed: ' + createError.message);
+                        if (createError.code === 'auth/email-already-in-use') {
+                             showLoginError('Account locked/password changed. Please go to Firebase Console -> Authentication and DELETE this number, then try again.');
+                        } else {
+                            showLoginError('Registration Failed: ' + createError.message);
+                        }
                         btn.textContent = 'Sign In Securely';
                         btn.disabled = false;
                     }
@@ -276,7 +289,8 @@
             
             showToast("Saving..."); // Show syncing status
             try {
-                await setDoc(doc(db, "users", currentUser.uid), { progress: window.userProgress }, { merge: true });
+                const userDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'data', 'progress');
+                await setDoc(userDocRef, { progress: window.userProgress }, { merge: true });
                 showToast("Saved to Cloud!"); 
             } catch(e) { 
                 console.error("Save error", e);
@@ -287,7 +301,8 @@
         async function loadProgressFromCloud() {
             if(!currentUser || !db) return;
             try {
-                const docSnap = await getDoc(doc(db, "users", currentUser.uid));
+                const userDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'data', 'progress');
+                const docSnap = await getDoc(userDocRef);
                 if (docSnap.exists()) window.userProgress = docSnap.data().progress || {};
             } catch(e) { 
                 console.error("Load error", e); 
