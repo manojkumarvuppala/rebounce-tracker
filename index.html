@@ -12,7 +12,7 @@
         .fade-in { animation: fadeIn 0.2s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         /* Loader */
-        .loader { border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #3498db; width: 24px; height: 24px; -webkit-animation: spin 1s linear infinite; animation: spin 1s linear infinite; }
+        .loader { border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #4f46e5; width: 24px; height: 24px; -webkit-animation: spin 1s linear infinite; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
@@ -23,88 +23,131 @@
         <!-- INITIAL LOADING SCREEN -->
         <div id="loadingView" class="h-full flex flex-col items-center justify-center bg-white z-50 absolute inset-0">
             <div class="loader mb-4"></div>
-            <p class="text-sm text-gray-500 font-medium tracking-wide">Loading Tracker...</p>
+            <p class="text-sm text-gray-500 font-medium tracking-wide">Connecting to Cloud...</p>
         </div>
 
-        <!-- NEW: MINIMALIST PHONE LOGIN SCREEN -->
         <div id="loginView" class="h-full flex flex-col justify-center px-8 bg-white z-40 absolute inset-0 hidden">
             <div class="flex justify-center mb-6">
-                <div class="w-16 h-16 bg-slate-800 rounded-2xl shadow-lg flex items-center justify-center text-white text-2xl font-bold">R2</div>
+                <div class="w-16 h-16 bg-indigo-600 rounded-2xl shadow-lg flex items-center justify-center text-white text-2xl font-bold">R2</div>
             </div>
             <h2 class="text-2xl font-bold text-center text-slate-800 mb-2">Welcome Student</h2>
             <p class="text-sm text-center text-gray-500 mb-8">Enter your phone number to sign in. Your progress will be saved automatically.</p>
             
-            <input type="tel" id="phoneInput" placeholder="Enter mobile number" class="w-full px-4 py-3 border border-gray-300 rounded-xl mb-4 focus:outline-none focus:ring-2 focus:ring-slate-500" pattern="[0-9]*">
-            <button id="signInBtn" class="w-full bg-slate-800 text-white font-bold py-3 rounded-xl hover:bg-slate-700 transition active:scale-95" onclick="handlePhoneSignIn()">Sign In</button>
-            <p id="loginMessage" class="text-sm text-center mt-4 hidden"></p>
+            <input type="tel" id="phoneInput" placeholder="Enter mobile number" class="w-full px-4 py-3 border border-gray-300 rounded-xl mb-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium text-lg" pattern="[0-9]*">
+            <button id="signInBtn" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 transition active:scale-95 shadow-md" onclick="handlePhoneSignIn()">Sign In Securely</button>
+            
+            <div id="loginErrorBox" class="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg hidden">
+                <p id="loginMessage" class="text-xs text-red-600 font-medium text-center"></p>
+            </div>
         </div>
 
-        <!-- Header -->
-        <header class="bg-slate-800 text-white px-4 py-4 flex items-center justify-between shadow-md z-10 shrink-0 hidden" id="mainHeader">
-            <button id="backBtn" class="text-white p-2 -ml-2 hidden rounded-full hover:bg-slate-700 transition" onclick="goBack()">
+        <header class="bg-indigo-700 text-white px-4 py-4 flex items-center justify-between shadow-md z-10 shrink-0 hidden" id="mainHeader">
+            <button id="backBtn" class="text-white p-2 -ml-2 hidden rounded-full hover:bg-indigo-600 transition" onclick="goBack()">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
             </button>
             <h1 id="headerTitle" class="text-xl font-bold tracking-wide flex-1 text-center">Rebounce 2.0</h1>
             <div class="w-8"></div>
         </header>
 
-        <!-- Main Content Area -->
         <main id="mainContent" class="flex-1 overflow-y-auto bg-gray-50 p-4 pb-24 hidden"></main>
 
-        <!-- Profile / Sync Overlay -->
-        <div id="profileOverlay" class="absolute inset-0 bg-white z-30 hidden flex flex-col p-6">
+        <!-- Profile Overlay -->
+        <div id="profileOverlay" class="absolute inset-0 bg-white z-30 hidden flex flex-col p-6 pt-12">
             <h2 class="text-2xl font-bold text-slate-800 mb-6">Profile & Settings</h2>
-            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-4">
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-4 shadow-sm">
                 <p class="text-xs text-gray-500 uppercase tracking-wider font-bold mb-1">Logged in as (Phone)</p>
-                <p class="text-lg font-medium text-slate-800" id="profilePhoneDisplay">Loading...</p>
+                <p class="text-xl font-bold text-indigo-700 tracking-wide" id="profilePhoneDisplay">Loading...</p>
             </div>
-            <button onclick="handleSignOut()" class="w-full py-3 bg-red-100 text-red-600 font-bold rounded-xl border border-red-200 mt-auto mb-16">Sign Out</button>
+            <button onclick="handleSignOut()" class="w-full py-3 bg-red-50 text-red-600 font-bold rounded-xl border border-red-200 mt-auto mb-16 active:scale-95 transition">Sign Out</button>
         </div>
 
-        <!-- Bottom Nav -->
-        <nav class="bg-white border-t border-gray-200 shrink-0 px-6 py-3 flex justify-between items-center z-20 hidden" id="bottomNav">
-            <button class="flex flex-col items-center text-slate-800" onclick="showDashboard()">
+        <!-- Custom Toast Notification System -->
+        <div id="toast" class="absolute bottom-20 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-2 rounded-full shadow-lg transition-opacity duration-300 opacity-0 pointer-events-none z-50 text-sm font-medium flex items-center">
+            <span id="toastMsg">Saved!</span>
+        </div>
+
+        <nav class="bg-white border-t border-gray-200 shrink-0 px-6 py-3 flex justify-between items-center z-20 hidden shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]" id="bottomNav">
+            <button class="flex flex-col items-center nav-btn text-indigo-600" id="navHome" onclick="showDashboard()">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-                <span class="text-[10px] mt-1 font-medium">Home</span>
+                <span class="text-[10px] mt-1 font-semibold">Home</span>
             </button>
-            <button class="flex flex-col items-center text-gray-400">
+            <button class="flex flex-col items-center nav-btn text-gray-400" id="navStats" onclick="showStats()">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-                <span class="text-[10px] mt-1 font-medium">Stats</span>
+                <span class="text-[10px] mt-1 font-semibold">Stats</span>
             </button>
-            <button class="flex flex-col items-center text-gray-400" onclick="showProfile()">
+            <button class="flex flex-col items-center nav-btn text-gray-400" id="navProfile" onclick="showProfile()">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                <span class="text-[10px] mt-1 font-medium">Profile</span>
+                <span class="text-[10px] mt-1 font-semibold">Profile</span>
             </button>
         </nav>
     </div>
 
-    <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-        // REPLACE THESE WITH YOUR FIREBASE PROJECT KEYS
+        // ======================================================================
+        // FIREBASE CONFIGURATION (LOCKED IN)
+        // ======================================================================
         const firebaseConfig = {
-  apiKey: "AIzaSyBLq_vb2DG8w8rLci4p4Nx7uhE2ZjYvjn8",
-  authDomain: "rebounce-tracker.firebaseapp.com",
-  projectId: "rebounce-tracker",
-  storageBucket: "rebounce-tracker.firebasestorage.app",
-  messagingSenderId: "497476611656",
-  appId: "1:497476611656:web:6bf41a726689078474b27d"
-};
+            apiKey: "AIzaSyBLq_vb2DG8w8rLci4p4Nx7uhE2ZjYvjn8",
+            authDomain: "rebounce-tracker.firebaseapp.com",
+            projectId: "rebounce-tracker",
+            storageBucket: "rebounce-tracker.firebasestorage.app",
+            messagingSenderId: "497476611656",
+            appId: "1:497476611656:web:6bf41a726689078474b27d"
+        };
+
         let app, auth, db;
         try {
             app = initializeApp(firebaseConfig);
             auth = getAuth(app);
             db = getFirestore(app);
         } catch (e) {
-            console.warn("Firebase not configured. Running in offline/memory mode for preview.");
+            console.warn("Firebase Init Error:", e);
         }
 
-        // ==========================================
-        // SYLLABUS AUTOMATION ENGINE
-        // ==========================================
+        // --- Custom UI Toast Notifications (Replaces alert()) ---
+        window.showToast = function(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const msgSpan = document.getElementById('toastMsg');
+            msgSpan.textContent = message;
+            toast.className = `absolute bottom-20 left-1/2 transform -translate-x-1/2 px-6 py-2 rounded-full shadow-lg transition-opacity duration-300 pointer-events-none z-50 text-sm font-medium flex items-center ${isError ? 'bg-red-600 text-white' : 'bg-slate-800 text-white'}`;
+            toast.style.opacity = '1';
+            setTimeout(() => { toast.style.opacity = '0'; }, 2500);
+        };
+
+        function showLoginError(msg) {
+            const box = document.getElementById('loginErrorBox');
+            const txt = document.getElementById('loginMessage');
+            txt.textContent = msg;
+            box.classList.remove('hidden');
+        }
+
+        const mathData = [
+            { t: "Basic Mathematics", l: 5 }, { t: "Sets and Relations", l: 3 }, { t: "Functions", l: 5 },
+            { t: "ITF", l: 4 }, { t: "Limits", l: 3 }, { t: "Continuity and Differentiability", l: 6 },
+            { t: "MOD", l: 2 }, { t: "AOD", l: 7 }, { t: "Indefinite Integration", l: 5 },
+            { t: "Definite Integration", l: 4 }, { t: "Differential Equation", l: 5 }, { t: "AUC", l: 2 },
+            { t: "Vector Algebra", l: 4 }, { t: "3D Geometry", l: 5 }, { t: "P and C", l: 5 },
+            { t: "Probability", l: 5 }, { t: "Straight Lines", l: 5 }, { t: "Circles", l: 4 },
+            { t: "Parabola", l: 4 }, { t: "Ellipse and Hyperbola", l: 7 }, { t: "Complex Numbers", l: 6 },
+            { t: "Statistics One Shot", l: 1, oneshot: true }
+        ];
+
+        const chemData = [
+            { t: "Mole Concept", l: 4 }, { t: "Dilute Solution", l: 4 }, { t: "Electrochemistry", l: 5 },
+            { t: "Chemical Kinetics", l: 4 }, { t: "Periodic Properties", l: 4 }, { t: "Chemical Bonding", l: 10 },
+            { t: "Nomenclature", l: 2 }, { t: "Isomerism", l: 3 }, { t: "GOC", l: 5 }, { t: "Hydrocarbons", l: 5 },
+            { t: "Haloalkanes Haloarenes", l: 5 }, { t: "Alcohol Phenol Ether", l: 4 }, { t: "Carbonyl Compounds", l: 5 },
+            { t: "Amines", l: 3 }, { t: "POC", l: 2 }, { t: "Biomolecules", l: 3 }, { t: "d and f block elements", l: 4 },
+            { t: "Coordination Compounds", l: 5 }, { t: "p block elements", l: 6 }, { t: "Qualitative Analysis", l: 2 },
+            { t: "Metallurgy", l: 2 }, { t: "Hydrogen", l: 2 }, { t: "s block elements", l: 2 }, { t: "Solid State", l: 4 },
+            { t: "Polymer One Shot", l: 1, oneshot: true }, { t: "CIEL One shot", l: 1, oneshot: true },
+            { t: "Environmental Chemistry One shot", l: 1, oneshot: true }
+        ];
+
         const physicsData = [
             { title: "Modern Physics", vids: 0, subs: [{ t: "Photoelectric Effect", v: 6 }, { t: "Bohr's Model", v: 9 }, { t: "X-ray", v: 3 }, { t: "Nuclear Physics", v: 8 }] },
             { title: "KTG & Thermodynamics", vids: 0, subs: [{ t: "Kinetic Theory of Gases", v: 3 }, { t: "Thermodynamics", v: 6 }] },
@@ -113,54 +156,7 @@
             { title: "Geometrical Optics", vids: 0, subs: [{ t: "Geometrical Optics", v: 70 }, { t: "Optical Instruments", v: 7 }] },
             { title: "Magnetic Effects of Current", vids: 0, subs: [{ t: "Magnetic Effect of Current", v: 7 }, { t: "Electromagnetic Forces", v: 8 }, { t: "Magnetic Properties", v: 4 }] },
             { title: "Rigid Body Dynamics (RBD)", vids: 0, subs: [{ t: "Rotational Motion", v: 18 }] },
-            { title: "Wave Optics", vids: 11, subs: [] },
-            { title: "Gravitation", vids: 6, subs: [] },
-            { title: "Units & Dimensions", vids: 0, subs: [] }, // No videos specified
-            { title: "Alternating Current (AC)", vids: 6, subs: [] },
-            { title: "Error & Measurement", vids: 5, subs: [] },
-            { title: "Solids & Semiconductors", vids: 0, subs: [{ t: "Semiconductors", v: 9 }, { t: "Communication System", v: 3 }] },
-            { title: "Elasticity & Viscosity", vids: 0, subs: [{ t: "Viscosity", v: 2 }, { t: "Elasticity", v: 3 }] },
-            { title: "NLM & Friction", vids: 0, subs: [{ t: "Newton's Law of Motion", v: 9 }, { t: "Friction", v: 6 }] },
-            { title: "Capacitor", vids: 12, subs: [] },
-            { title: "Electromagnetic Waves", vids: 4, subs: [] },
-            { title: "Work, Power & Energy", vids: 11, subs: [] },
-            { title: "Rectilinear Motion", vids: 0, subs: [{ t: "Rectilinear Motion", v: 9 }, { t: "Kinematics", v: 3 }] },
-            { title: "EMI", vids: 14, subs: [] },
-            { title: "Simple Harmonic Motion", vids: 11, subs: [] },
-            { title: "Circular Motion", vids: 10, subs: [] },
-            { title: "Fluid Mechanics", vids: 9, subs: [] },
-            { title: "Surface Tension", vids: 5, subs: [] },
-            { title: "Center of Mass (COM)", vids: 10, subs: [] },
-            { title: "Projectile Motion", vids: 12, subs: [] },
-            { title: "Sound Waves", vids: 14, subs: [] },
-            { title: "Wave on a String", vids: 12, subs: [] },
-            { title: "Calorimetry & Thermal Exp.", vids: 0, subs: [{ t: "Calorimetry", v: 3 }, { t: "Thermal Expansion", v: 3 }] },
-            { title: "Mathematical Tools", vids: 35, subs: [] },
-            { title: "Heat Transfer", vids: 6, subs: [] },
-            { title: "Relative Motion", vids: 7, subs: [] }
-        ];
-
-        const chemData = [
-            { t: "Mole Concept", v: 4 }, { t: "Dilute Solution", v: 4 }, { t: "Electrochemistry", v: 5 }, 
-            { t: "Chemical Kinetics", v: 4 }, { t: "Periodic Properties", v: 4 }, { t: "Chemical Bonding", v: 10 },
-            { t: "Nomenclature", v: 2 }, { t: "Isomerism", v: 3 }, { t: "GOC", v: 5 }, { t: "Hydrocarbons", v: 5 },
-            { t: "Haloalkanes Haloarenes", v: 5 }, { t: "Alcohol Phenol Ether", v: 4 }, { t: "Carbonyl Compounds", v: 5 },
-            { t: "Amines", v: 3 }, { t: "POC", v: 2 }, { t: "Biomolecules", v: 3 }, { t: "d and f block elements", v: 4 },
-            { t: "Coordination Compounds", v: 5 }, { t: "p block elements", v: 6 }, { t: "Qualitative Analysis", v: 2 },
-            { t: "Metallurgy", v: 2 }, { t: "Hydrogen", v: 2 }, { t: "s block elements", v: 2 }, { t: "Solid State", v: 4 },
-            { t: "Polymer One Shot", v: 1, oneshot: true }, { t: "CIEL One shot", v: 1, oneshot: true }, 
-            { t: "Environmental Chemistry One shot", v: 1, oneshot: true }
-        ];
-
-        const mathData = [
-            { t: "Basic Mathematics", v: 5 }, { t: "Sets and Relations", v: 3 }, { t: "Functions", v: 5 },
-            { t: "ITF", v: 4 }, { t: "Limits", v: 3 }, { t: "Continuity and Differentiability", v: 6 },
-            { t: "MOD", v: 2 }, { t: "AOD", v: 7 }, { t: "Indefinite Integration", v: 5 }, 
-            { t: "Definite Integration", v: 4 }, { t: "Differential Equation", v: 5 }, { t: "AUC", v: 2 },
-            { t: "Vector Algebra", v: 4 }, { t: "3D Geometry", v: 5 }, { t: "P and C", v: 5 },
-            { t: "Probability", v: 5 }, { t: "Straight Lines", v: 5 }, { t: "Circles", v: 4 },
-            { t: "Parabola", v: 4 }, { t: "Ellipse and Hyperbola", v: 7 }, { t: "Complex Numbers", v: 6 },
-            { t: "Statistics One Shot", v: 1, oneshot: true }
+            { title: "Wave Optics", vids: 11, subs: [] }
         ];
 
         function generatePhysics() {
@@ -170,17 +166,14 @@
                 let subtopics = ch.subs.length > 0 ? ch.subs : [{ t: ch.title, v: ch.vids }];
                 
                 subtopics.forEach((sub, subIdx) => {
-                    if(sub.v === 0) return; // Skip if no videos
+                    if(sub.v === 0) return; 
                     let tasks = [];
-                    // 1. Add Videos
                     for(let i=1; i<=sub.v; i++) {
                         tasks.push({ id: `p_${chIdx}_${subIdx}_v${i}`, title: `Video ${i}`, type: 'video' });
                     }
-                    // 2. Add subtopic specific practice & tests (Always add for every subtopic!)
                     tasks.push({ id: `p_${chIdx}_${subIdx}_res`, title: "Resonance Module", type: 'practice' });
                     tasks.push({ id: `p_${chIdx}_${subIdx}_test`, title: "Chapter-wise Test", type: 'test' });
                     tasks.push({ id: `p_${chIdx}_${subIdx}_pyq`, title: "Chapter-wise PYQs", type: 'pyq' });
-                    
                     sections.push({ title: sub.t, tasks: tasks });
                 });
                 if(sections.length > 0) topics.push({ id: `phy_${chIdx}`, title: ch.title, sections: sections });
@@ -191,7 +184,7 @@
         function generateStandard(dataArr, prefix) {
             return dataArr.map((ch, idx) => {
                 let tasks = [];
-                for(let i=1; i<=ch.v; i++) {
+                for(let i=1; i<=ch.l; i++) {
                     let title = ch.oneshot ? ch.t : `${ch.t} L-${i}`;
                     tasks.push({ id: `${prefix}_${idx}_l${i}`, title: title, type: 'lecture' });
                     if (!ch.oneshot) {
@@ -217,7 +210,6 @@
             math: { title: "Mathematics", color: "blue", topics: generateStandard(mathData, 'm') }
         };
 
-        // --- STATE & AUTH ---
         window.userProgress = {}; 
         let currentUser = null;
         let currentView = 'dashboard';
@@ -225,45 +217,47 @@
         let currentTopicId = null;
 
         window.handlePhoneSignIn = async function() {
-            if(!auth) { alert("Firebase not configured. Please add keys to code."); return; }
+            if(!auth || !db) { 
+                showLoginError("Firebase Keys missing. Please paste your API keys in the code to log in.");
+                return; 
+            }
             
             const phoneStr = document.getElementById('phoneInput').value.trim();
-            const msgEl = document.getElementById('loginMessage');
-            
             if(phoneStr.length < 8) {
-                msgEl.textContent = 'Please enter a valid phone number.';
-                msgEl.className = 'text-sm text-center mt-4 text-red-500 block';
+                showLoginError('Please enter a valid phone number (minimum 8 digits).');
                 return;
             }
 
-            // DUMMY CONVERSION (No OTP required)
             const dummyEmail = `${phoneStr}@rebouncetracker.app`;
             const dummyPassword = `R2Secret_${phoneStr}`;
 
             const btn = document.getElementById('signInBtn');
-            btn.textContent = 'Signing in securely...';
+            btn.textContent = 'Connecting...';
             btn.disabled = true;
+            document.getElementById('loginErrorBox').classList.add('hidden');
 
             try {
-                // Try logging in existing user
+                // Attempt login first
                 await signInWithEmailAndPassword(auth, dummyEmail, dummyPassword);
-                // SUCCESS - auth state listener will handle the rest
             } catch (error) {
-                // If user doesn't exist, instantly create them
-                if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
+                console.error("Auth Error:", error.code);
+                
+                // If it fails because user doesn't exist, instantly register them
+                if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found') {
                     try {
                         await createUserWithEmailAndPassword(auth, dummyEmail, dummyPassword);
-                        // SUCCESS - Created new account based on phone
                     } catch (createError) {
-                        msgEl.textContent = 'Error creating account.';
-                        msgEl.className = 'text-sm text-center mt-4 text-red-500 block';
-                        btn.textContent = 'Sign In';
+                        showLoginError('Registration Failed: ' + createError.message);
+                        btn.textContent = 'Sign In Securely';
                         btn.disabled = false;
                     }
+                } else if (error.code === 'auth/invalid-api-key') {
+                    showLoginError("CRITICAL: Your Firebase API Key is invalid. Check your code.");
+                    btn.textContent = 'Sign In Securely';
+                    btn.disabled = false;
                 } else {
-                    msgEl.textContent = 'Error connecting to server.';
-                    msgEl.className = 'text-sm text-center mt-4 text-red-500 block';
-                    btn.textContent = 'Sign In';
+                    showLoginError('Login Failed: ' + error.message);
+                    btn.textContent = 'Sign In Securely';
                     btn.disabled = false;
                 }
             }
@@ -275,10 +269,19 @@
         }
 
         async function saveProgressToCloud() {
-            if(!currentUser || !db) return;
+            if(!currentUser || !db) {
+                showToast("Cannot save: Database offline.", true);
+                return;
+            }
+            
+            showToast("Saving..."); // Show syncing status
             try {
                 await setDoc(doc(db, "users", currentUser.uid), { progress: window.userProgress }, { merge: true });
-            } catch(e) { console.error("Save error", e); }
+                showToast("Saved to Cloud!"); 
+            } catch(e) { 
+                console.error("Save error", e);
+                showToast("Error saving to cloud! Check Firestore Rules.", true);
+            }
         }
 
         async function loadProgressFromCloud() {
@@ -286,7 +289,10 @@
             try {
                 const docSnap = await getDoc(doc(db, "users", currentUser.uid));
                 if (docSnap.exists()) window.userProgress = docSnap.data().progress || {};
-            } catch(e) { console.error("Load error", e); }
+            } catch(e) { 
+                console.error("Load error", e); 
+                showToast("Failed to load past progress.", true);
+            }
         }
 
         if(auth) {
@@ -295,7 +301,6 @@
                 
                 if (user) {
                     currentUser = user;
-                    // Extract phone number from our dummy email
                     let phoneStr = user.email.split('@')[0];
                     document.getElementById('profilePhoneDisplay').textContent = phoneStr;
                     
@@ -305,9 +310,13 @@
                     document.getElementById('bottomNav').classList.remove('hidden');
                     
                     await loadProgressFromCloud();
+                    
                     if(currentView === 'dashboard') renderDashboard();
                     else if (currentView === 'subject') renderSubject(currentSubjectId);
                     else if (currentView === 'topic') renderTopic(currentSubjectId, currentTopicId);
+                    else if (currentView === 'stats') renderStats();
+                    else if (currentView === 'profile') renderProfile();
+
                 } else {
                     currentUser = null;
                     document.getElementById('loginView').classList.remove('hidden');
@@ -316,61 +325,86 @@
                     document.getElementById('bottomNav').classList.add('hidden');
                     document.getElementById('profileOverlay').classList.add('hidden');
                     
-                    // Reset login button state
                     const btn = document.getElementById('signInBtn');
-                    btn.textContent = 'Sign In';
+                    btn.textContent = 'Sign In Securely';
                     btn.disabled = false;
-                    document.getElementById('phoneInput').value = '';
                 }
             });
         } else {
-            // Offline/Preview Mode
-            document.getElementById('loadingView').classList.add('hidden');
-            document.getElementById('loginView').classList.add('hidden');
-            document.getElementById('mainHeader').classList.remove('hidden');
-            document.getElementById('mainContent').classList.remove('hidden');
-            document.getElementById('bottomNav').classList.remove('hidden');
-            window.renderDashboard();
+            // Preview / Offline Fallback if keys are not set yet
+            setTimeout(() => {
+                document.getElementById('loadingView').classList.add('hidden');
+                document.getElementById('loginView').classList.remove('hidden');
+                showLoginError("Firebase Keys missing. Please add your keys to the code to use the app.");
+            }, 500);
         }
 
-        // --- SVGs ---
-        const SVG_UNCHECKED = `<svg class="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke-width="2"></circle></svg>`;
-        const SVG_PARTIAL = `<svg class="w-8 h-8 text-yellow-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 000 20V2z" /></svg><svg class="w-8 h-8 text-yellow-500 absolute top-0 left-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke-width="2"></circle></svg>`;
-        const SVG_FULL = `<svg class="w-8 h-8 text-emerald-500" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zm-1.83-5.32l-3.48-3.48a1 1 0 011.41-1.41l2.07 2.07 4.79-5.99a1 1 0 111.56 1.25l-5.64 7.05a.998.998 0 01-1.42.06z" clip-rule="evenodd" /></svg>`;
-
-        function calculateStats(subjectId) {
-            let stats = { learn: { t: 0, c: 0 }, practice: { t: 0, c: 0 }, assess: { t: 0, c: 0 } };
-            window.SYLLABUS[subjectId].topics.forEach(topic => {
-                topic.sections.forEach(sec => {
-                    sec.tasks.forEach(task => {
-                        let cat = 'practice';
-                        if (task.type === 'lecture' || task.type === 'video') cat = 'learn';
-                        if (task.type === 'test' || task.type === 'pyq') cat = 'assess';
-
-                        stats[cat].t += 1;
-                        let status = window.userProgress[task.id] || 0;
-                        if (status === 1) stats[cat].c += 0.5;
-                        if (status === 2) stats[cat].c += 1.0;
-                    });
-                });
+        function updateNavState(activeTab) {
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-indigo-600');
+                btn.classList.add('text-gray-400');
             });
-            return {
-                learnPct: stats.learn.t ? Math.round((stats.learn.c / stats.learn.t) * 100) : 0,
-                pracPct: stats.practice.t ? Math.round((stats.practice.c / stats.practice.t) * 100) : 0,
-                assessPct: stats.assess.t ? Math.round((stats.assess.c / stats.assess.t) * 100) : 0
-            };
+            const activeBtn = document.getElementById('nav' + activeTab);
+            if(activeBtn) {
+                activeBtn.classList.remove('text-gray-400');
+                activeBtn.classList.add('text-indigo-600');
+            }
         }
 
         window.showDashboard = function() {
             document.getElementById('profileOverlay').classList.add('hidden');
             document.getElementById('mainContent').classList.remove('hidden');
+            updateNavState('Home');
             renderDashboard();
         }
 
+        window.showStats = function() {
+            document.getElementById('profileOverlay').classList.add('hidden');
+            document.getElementById('mainContent').classList.remove('hidden');
+            updateNavState('Stats');
+            renderStats();
+        }
+
         window.showProfile = function() {
+            currentView = 'profile';
             document.getElementById('mainContent').classList.add('hidden');
             document.getElementById('profileOverlay').classList.remove('hidden');
             document.getElementById('headerTitle').textContent = 'Profile';
+            document.getElementById('backBtn').classList.add('hidden');
+            updateNavState('Profile');
+        }
+
+        const SVG_UNCHECKED = `<svg class="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke-width="2"></circle></svg>`;
+        const SVG_PARTIAL = `<svg class="w-8 h-8 text-yellow-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 000 20V2z" /></svg><svg class="w-8 h-8 text-yellow-500 absolute top-0 left-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke-width="2"></circle></svg>`;
+        const SVG_FULL = `<svg class="w-8 h-8 text-emerald-500" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zm-1.83-5.32l-3.48-3.48a1 1 0 011.41-1.41l2.07 2.07 4.79-5.99a1 1 0 111.56 1.25l-5.64 7.05a.998.998 0 01-1.42.06z" clip-rule="evenodd" /></svg>`;
+
+        function calculateStats(subjectId) {
+            let stats = {
+                learn: { total: 0, completed: 0 },
+                prac: { total: 0, completed: 0 },
+                assess: { total: 0, completed: 0 }
+            };
+
+            window.SYLLABUS[subjectId].topics.forEach(topic => {
+                topic.sections.forEach(sec => sec.tasks.forEach(task => {
+                    let cat = 'prac';
+                    if (task.type === 'lecture' || task.type === 'video') cat = 'learn';
+                    if (task.type === 'test' || task.type === 'pyq') cat = 'assess';
+
+                    stats[cat].total += 1;
+                    let status = window.userProgress[task.id] || 0;
+                    if (status === 1) stats[cat].completed += 0.5;
+                    if (status === 2) stats[cat].completed += 1.0;
+                }));
+            });
+
+            return {
+                learnPct: stats.learn.total ? Math.round((stats.learn.completed / stats.learn.total) * 100) : 0,
+                pracPct: stats.prac.total ? Math.round((stats.prac.completed / stats.prac.total) * 100) : 0,
+                assessPct: stats.assess.total ? Math.round((stats.assess.completed / stats.assess.total) * 100) : 0,
+                totalTasks: stats.learn.total + stats.prac.total + stats.assess.total,
+                totalCompleted: stats.learn.completed + stats.prac.completed + stats.assess.completed
+            };
         }
 
         window.renderDashboard = function() {
@@ -378,7 +412,7 @@
             document.getElementById('headerTitle').textContent = 'My Schedule';
             document.getElementById('backBtn').classList.add('hidden');
             
-            let html = `<div class="fade-in space-y-4"><p class="text-sm text-gray-500 mb-2">Select a subject to track your daily progress.</p>`;
+            let html = `<div class="fade-in space-y-4"><p class="text-sm text-gray-500 mb-2 font-medium px-1">Select a subject to track progress.</p>`;
 
             Object.keys(window.SYLLABUS).forEach(subId => {
                 const sub = window.SYLLABUS[subId];
@@ -394,11 +428,54 @@
                             </div>
                         </div>
                         <div class="mb-3"><div class="flex justify-between text-xs mb-1 font-medium text-gray-600"><span>Lectures / Videos</span><span>${stats.learnPct}%</span></div><div class="w-full bg-gray-200 rounded-full h-2"><div class="${colorClass} h-2 rounded-full transition-all duration-500" style="width: ${stats.learnPct}%"></div></div></div>
-                        <div class="mb-3"><div class="flex justify-between text-xs mb-1 font-medium text-gray-600"><span>Practice Modules & DPPs</span><span>${stats.pracPct}%</span></div><div class="w-full bg-gray-200 rounded-full h-2"><div class="${colorClass} h-2 rounded-full transition-all duration-500" style="width: ${stats.pracPct}%"></div></div></div>
+                        <div class="mb-3"><div class="flex justify-between text-xs mb-1 font-medium text-gray-600"><span>Practice & DPPs</span><span>${stats.pracPct}%</span></div><div class="w-full bg-gray-200 rounded-full h-2"><div class="${colorClass} h-2 rounded-full transition-all duration-500" style="width: ${stats.pracPct}%"></div></div></div>
                         <div class="mb-3"><div class="flex justify-between text-xs mb-1 font-medium text-gray-600"><span>Tests & PYQs</span><span>${stats.assessPct}%</span></div><div class="w-full bg-gray-200 rounded-full h-2"><div class="${colorClass} h-2 rounded-full transition-all duration-500" style="width: ${stats.assessPct}%"></div></div></div>
                     </div>`;
             });
             document.getElementById('mainContent').innerHTML = html + `</div>`;
+        }
+
+        window.renderStats = function() {
+            currentView = 'stats';
+            document.getElementById('headerTitle').textContent = 'Overall Analytics';
+            document.getElementById('backBtn').classList.add('hidden');
+
+            let totalTasks = 0;
+            let totalCompleted = 0;
+
+            let html = `<div class="fade-in space-y-4">`;
+
+            Object.keys(window.SYLLABUS).forEach(subId => {
+                const sub = window.SYLLABUS[subId];
+                const stats = calculateStats(subId);
+                totalTasks += stats.totalTasks;
+                totalCompleted += stats.totalCompleted;
+                
+                let subPct = stats.totalTasks ? Math.round((stats.totalCompleted/stats.totalTasks)*100) : 0;
+                let colorClass = sub.color === 'blue' ? 'text-blue-500' : (sub.color === 'orange' ? 'text-orange-500' : 'text-teal-500');
+
+                html += `
+                    <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
+                        <div>
+                            <h3 class="font-bold text-gray-800">${sub.title} Mastery</h3>
+                            <p class="text-xs text-gray-500 mt-1">${stats.totalCompleted} / ${stats.totalTasks} Tasks</p>
+                        </div>
+                        <div class="text-2xl font-black ${colorClass}">${subPct}%</div>
+                    </div>
+                `;
+            });
+
+            let masterPct = totalTasks ? Math.round((totalCompleted/totalTasks)*100) : 0;
+
+            let headerHtml = `
+                <div class="bg-indigo-700 text-white rounded-2xl p-6 mb-6 shadow-md text-center">
+                    <p class="text-indigo-200 text-xs uppercase tracking-widest font-bold mb-2">Total JEE Completion</p>
+                    <div class="text-5xl font-black mb-2">${masterPct}%</div>
+                    <p class="text-sm font-medium opacity-90">${totalCompleted} completed out of ${totalTasks} total tasks</p>
+                </div>
+            `;
+
+            document.getElementById('mainContent').innerHTML = headerHtml + html + `</div>`;
         }
 
         window.renderSubject = function(subjectId) {
@@ -442,7 +519,7 @@
             const topic = sub.topics.find(t => t.id === topicId);
             document.getElementById('headerTitle').textContent = topic.title;
 
-            let html = `<div class="fade-in"><div class="flex justify-end items-center mb-4 px-1"><span class="text-[10px] text-gray-500 italic">Tap twice for full complete</span></div>`;
+            let html = `<div class="fade-in"><div class="flex justify-end items-center mb-4 px-1"><span class="text-[10px] text-gray-500 italic font-medium">Tap twice to fully complete</span></div>`;
 
             topic.sections.forEach(section => {
                 html += `<h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1 mt-6">${section.title}</h3><div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mb-4">`;
@@ -468,7 +545,7 @@
                                 <h4 class="text-sm font-medium ${tClass}">${task.title}</h4>
                                 <span class="inline-block mt-1.5 text-[9px] font-bold tracking-wider px-2 py-0.5 rounded ${bg}">${task.type.toUpperCase()}</span>
                             </div>
-                            ${status === 1 ? `<span class="text-[10px] text-yellow-600 font-bold bg-yellow-50 px-2 py-1 rounded ml-2 shrink-0">PARTIAL</span>` : ''}
+                            ${status === 1 ? `<span class="text-[10px] text-yellow-600 font-bold bg-yellow-50 px-2 py-1 rounded ml-2 shrink-0 border border-yellow-200">PARTIAL</span>` : ''}
                         </div>`;
                 });
                 html += `</div>`;
@@ -480,12 +557,12 @@
             let s = window.userProgress[taskId] || 0;
             window.userProgress[taskId] = (s + 1) % 3;
             renderTopic(currentSubjectId, currentTopicId);
-            saveProgressToCloud(); // Auto-save on every click
+            saveProgressToCloud(); 
         }
 
         window.goBack = function() {
             if (currentView === 'topic') renderSubject(currentSubjectId);
-            else if (currentView === 'subject') renderDashboard();
+            else if (currentView === 'subject') showDashboard();
         }
 
     </script>
