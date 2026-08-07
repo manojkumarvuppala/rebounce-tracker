@@ -54,7 +54,7 @@
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, onAuthStateChanged, signOut, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // ==========================================
@@ -68,6 +68,7 @@
   messagingSenderId: "497476611656",
   appId: "1:497476611656:web:6bf41a726689078474b27d"
 };
+
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'rebounce-tracker-v2';
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -76,31 +77,13 @@
         window.firebaseAuth = auth;
         window.firebaseDb = db;
         window.firebaseAppId = appId;
-        window.sendSignInLinkToEmail = sendSignInLinkToEmail;
-        window.isSignInWithEmailLink = isSignInWithEmailLink;
-        window.signInWithEmailLink = signInWithEmailLink;
+        window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+        window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
         window.signOut = signOut;
         window.doc = doc;
         window.setDoc = setDoc;
         window.getDoc = getDoc;
         window.onSnapshot = onSnapshot;
-
-        // Handle Passwordless Email Link sign-in completion if clicked from email
-        if (isSignInWithEmailLink(auth, window.location.href)) {
-            let email = window.localStorage.getItem('emailForSignIn');
-            if (!email) {
-                email = window.prompt('Please provide your email for confirmation:');
-            }
-            signInWithEmailLink(auth, email, window.location.href)
-                .then((result) => {
-                    window.localStorage.removeItem('emailForSignIn');
-                    showModal("Success!", "Successfully signed in with passwordless link.");
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                })
-                .catch((error) => {
-                    showModal("Sign-In Error", error.message);
-                });
-        }
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
@@ -456,34 +439,50 @@
                 <div class="fade-in flex flex-col items-center justify-center h-full text-center py-8 px-4">
                     <div class="w-16 h-16 bg-slate-800 text-white rounded-2xl flex items-center justify-center text-2xl font-bold mb-4 shadow-lg">R2</div>
                     <h2 class="text-2xl font-bold text-gray-800 mb-2">Welcome Student</h2>
-                    <p class="text-sm text-gray-500 mb-6">Enter your email for passwordless sign-in. Your progress will be saved automatically across devices.</p>
+                    <p class="text-sm text-gray-500 mb-6">Enter your phone number to sign in. Your progress will be saved automatically.</p>
                     
                     <div class="w-full max-w-sm space-y-4">
-                        <input type="email" id="emailInput" placeholder="Enter your email address" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-slate-800 text-sm">
-                        <button onclick="handleLogin()" class="w-full bg-slate-800 text-white py-3 rounded-xl font-medium shadow-md hover:bg-slate-700 transition">Send Magic Sign-In Link</button>
+                        <input type="tel" id="phoneInput" placeholder="Enter 10-digit Phone Number" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-slate-800 text-sm tracking-wide font-medium">
+                        <button onclick="handleLogin()" class="w-full bg-slate-800 text-white py-3 rounded-xl font-medium shadow-md hover:bg-slate-700 transition">Sign In</button>
                     </div>
                 </div>
             `;
         }
 
-        function handleLogin() {
-            const email = document.getElementById('emailInput').value.trim();
-            if (!email) {
-                showModal("Input Required", "Please enter a valid email address.");
+        async function handleLogin() {
+            const phone = document.getElementById('phoneInput').value.trim();
+            
+            // Basic validation
+            if (phone.length < 10) {
+                showModal("Input Required", "Please enter a valid phone number (at least 10 digits).");
                 return;
             }
-            const actionCodeSettings = {
-                url: window.location.href,
-                handleCodeInApp: true,
-            };
-            window.sendSignInLinkToEmail(window.firebaseAuth, email, actionCodeSettings)
-                .then(() => {
-                    window.localStorage.setItem('emailForSignIn', email);
-                    showModal("Check Your Email", "We have sent a passwordless sign-in link to " + email + ". Click the link in your email to log in!");
-                })
-                .catch((error) => {
-                    showModal("Error", error.message);
-                });
+
+            // Show loading state on button
+            const btn = document.querySelector('button[onclick="handleLogin()"]');
+            const originalText = btn.textContent;
+            btn.textContent = "Signing In...";
+            btn.disabled = true;
+
+            // We use Email/Password auth under the hood to bypass OTP requirements seamlessly.
+            const dummyEmail = `${phone}@rebouncetracker.app`;
+            const dummyPassword = `R2-Tracker-${phone}`;
+
+            try {
+                // Try to sign in first
+                await window.signInWithEmailAndPassword(window.firebaseAuth, dummyEmail, dummyPassword);
+                closeModal(); // Clean up just in case
+            } catch (error) {
+                try {
+                    // If sign in fails (user doesn't exist), immediately create the account
+                    await window.createUserWithEmailAndPassword(window.firebaseAuth, dummyEmail, dummyPassword);
+                    closeModal();
+                } catch (createError) {
+                    showModal("Sign-In Error", "Could not sign in. Please try again.");
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                }
+            }
         }
 
         function renderDashboard() {
@@ -633,16 +632,17 @@
             updateHeader('Student Profile', false);
             bottomNav.classList.remove('hidden');
 
-            const email = window.currentUser ? window.currentUser.email : 'Not signed in';
+            // Extract the phone number back out of the dummy email
+            const phone = window.currentUser ? window.currentUser.email.split('@')[0] : 'Not signed in';
 
             mainContent.innerHTML = `
                 <div class="fade-in space-y-4">
                     <div class="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm text-center">
                         <div class="w-16 h-16 bg-indigo-100 text-indigo-700 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-3">
-                            ${email.charAt(0).toUpperCase()}
+                            ${phone.charAt(0).toUpperCase()}
                         </div>
                         <h3 class="text-md font-bold text-gray-800 mb-1">Logged In User</h3>
-                        <p class="text-xs text-gray-500 mb-4">${email}</p>
+                        <p class="text-xs text-gray-500 mb-4 tracking-wider font-medium">+91 ${phone}</p>
                         <button onclick="handleLogout()" class="bg-red-50 text-red-600 border border-red-200 px-4 py-2 rounded-xl text-xs font-semibold hover:bg-red-100 transition">Sign Out</button>
                     </div>
                 </div>
