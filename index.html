@@ -11,55 +11,80 @@
         .app-container { height: 100dvh; }
         .fade-in { animation: fadeIn 0.2s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        /* Loader */
+        .loader { border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #3498db; width: 24px; height: 24px; -webkit-animation: spin 1s linear infinite; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="flex items-center justify-center">
 
     <div id="app" class="app-container w-full max-w-md bg-gray-50 flex flex-col shadow-2xl relative overflow-hidden sm:h-[850px] sm:rounded-3xl sm:my-8 border sm:border-gray-300">
         
+        <!-- INITIAL LOADING SCREEN -->
+        <div id="loadingView" class="h-full flex flex-col items-center justify-center bg-white z-50 absolute inset-0">
+            <div class="loader mb-4"></div>
+            <p class="text-sm text-gray-500 font-medium tracking-wide">Loading Tracker...</p>
+        </div>
+
+        <!-- NEW: MINIMALIST PHONE LOGIN SCREEN -->
+        <div id="loginView" class="h-full flex flex-col justify-center px-8 bg-white z-40 absolute inset-0 hidden">
+            <div class="flex justify-center mb-6">
+                <div class="w-16 h-16 bg-slate-800 rounded-2xl shadow-lg flex items-center justify-center text-white text-2xl font-bold">R2</div>
+            </div>
+            <h2 class="text-2xl font-bold text-center text-slate-800 mb-2">Welcome Student</h2>
+            <p class="text-sm text-center text-gray-500 mb-8">Enter your phone number to sign in. Your progress will be saved automatically.</p>
+            
+            <input type="tel" id="phoneInput" placeholder="Enter mobile number" class="w-full px-4 py-3 border border-gray-300 rounded-xl mb-4 focus:outline-none focus:ring-2 focus:ring-slate-500" pattern="[0-9]*">
+            <button id="signInBtn" class="w-full bg-slate-800 text-white font-bold py-3 rounded-xl hover:bg-slate-700 transition active:scale-95" onclick="handlePhoneSignIn()">Sign In</button>
+            <p id="loginMessage" class="text-sm text-center mt-4 hidden"></p>
+        </div>
+
         <!-- Header -->
-        <header class="bg-slate-800 text-white px-4 py-4 flex items-center justify-between shadow-md z-10 shrink-0">
+        <header class="bg-slate-800 text-white px-4 py-4 flex items-center justify-between shadow-md z-10 shrink-0 hidden" id="mainHeader">
             <button id="backBtn" class="text-white p-2 -ml-2 hidden rounded-full hover:bg-slate-700 transition" onclick="goBack()">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
             </button>
             <h1 id="headerTitle" class="text-xl font-bold tracking-wide flex-1 text-center">Rebounce 2.0</h1>
-            <div id="headerAction" class="w-8 flex items-center justify-center"></div>
+            <div class="w-8"></div>
         </header>
 
         <!-- Main Content Area -->
-        <main id="mainContent" class="flex-1 overflow-y-auto bg-gray-50 p-4 pb-24"></main>
+        <main id="mainContent" class="flex-1 overflow-y-auto bg-gray-50 p-4 pb-24 hidden"></main>
+
+        <!-- Profile / Sync Overlay -->
+        <div id="profileOverlay" class="absolute inset-0 bg-white z-30 hidden flex flex-col p-6">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">Profile & Settings</h2>
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-4">
+                <p class="text-xs text-gray-500 uppercase tracking-wider font-bold mb-1">Logged in as (Phone)</p>
+                <p class="text-lg font-medium text-slate-800" id="profilePhoneDisplay">Loading...</p>
+            </div>
+            <button onclick="handleSignOut()" class="w-full py-3 bg-red-100 text-red-600 font-bold rounded-xl border border-red-200 mt-auto mb-16">Sign Out</button>
+        </div>
 
         <!-- Bottom Nav -->
-        <nav class="bg-white border-t border-gray-200 shrink-0 px-6 py-3 flex justify-between items-center z-10 hidden" id="bottomNav">
-            <button class="flex flex-col items-center text-slate-800" onclick="renderDashboard()">
+        <nav class="bg-white border-t border-gray-200 shrink-0 px-6 py-3 flex justify-between items-center z-20 hidden" id="bottomNav">
+            <button class="flex flex-col items-center text-slate-800" onclick="showDashboard()">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
                 <span class="text-[10px] mt-1 font-medium">Home</span>
             </button>
-            <button class="flex flex-col items-center text-gray-400" onclick="renderProfile()">
+            <button class="flex flex-col items-center text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                <span class="text-[10px] mt-1 font-medium">Stats</span>
+            </button>
+            <button class="flex flex-col items-center text-gray-400" onclick="showProfile()">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                 <span class="text-[10px] mt-1 font-medium">Profile</span>
             </button>
         </nav>
     </div>
 
-    <!-- Custom Modal for Notifications -->
-    <div id="modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center">
-            <h3 id="modalTitle" class="text-lg font-bold text-gray-800 mb-2">Notice</h3>
-            <p id="modalText" class="text-sm text-gray-600 mb-6"></p>
-            <button onclick="closeModal()" class="w-full bg-slate-800 text-white py-2.5 rounded-xl font-medium hover:bg-slate-700 transition">OK</button>
-        </div>
-    </div>
-
     <!-- Firebase SDKs -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-        // ==========================================
-        // FIREBASE CONFIGURATION (REPLACE WITH YOURS)
-        // ==========================================
+        // REPLACE THESE WITH YOUR FIREBASE PROJECT KEYS
         const firebaseConfig = {
   apiKey: "AIzaSyBLq_vb2DG8w8rLci4p4Nx7uhE2ZjYvjn8",
   authDomain: "rebounce-tracker.firebaseapp.com",
@@ -68,618 +93,401 @@
   messagingSenderId: "497476611656",
   appId: "1:497476611656:web:6bf41a726689078474b27d"
 };
+        let app, auth, db;
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+        } catch (e) {
+            console.warn("Firebase not configured. Running in offline/memory mode for preview.");
+        }
 
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'rebounce-tracker-v2';
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        window.firebaseAuth = auth;
-        window.firebaseDb = db;
-        window.firebaseAppId = appId;
-        window.signInWithEmailAndPassword = signInWithEmailAndPassword;
-        window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
-        window.signOut = signOut;
-        window.doc = doc;
-        window.setDoc = setDoc;
-        window.getDoc = getDoc;
-        window.onSnapshot = onSnapshot;
-
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                window.currentUser = user;
-                loadUserProgress(user.uid);
-            } else {
-                window.currentUser = null;
-                userProgress = {};
-                renderLoginScreen();
-            }
-        });
-    </script>
-
-    <script>
         // ==========================================
-        // SYLLABUS DATA (Rebounce 2.0 Final PDF & Physics Analysis)
+        // SYLLABUS AUTOMATION ENGINE
         // ==========================================
+        const physicsData = [
+            { title: "Modern Physics", vids: 0, subs: [{ t: "Photoelectric Effect", v: 6 }, { t: "Bohr's Model", v: 9 }, { t: "X-ray", v: 3 }, { t: "Nuclear Physics", v: 8 }] },
+            { title: "KTG & Thermodynamics", vids: 0, subs: [{ t: "Kinetic Theory of Gases", v: 3 }, { t: "Thermodynamics", v: 6 }] },
+            { title: "Current Electricity", vids: 16, subs: [] },
+            { title: "Electrostatics", vids: 0, subs: [{ t: "Electrostatics", v: 33 }, { t: "Conductors", v: 4 }] },
+            { title: "Geometrical Optics", vids: 0, subs: [{ t: "Geometrical Optics", v: 70 }, { t: "Optical Instruments", v: 7 }] },
+            { title: "Magnetic Effects of Current", vids: 0, subs: [{ t: "Magnetic Effect of Current", v: 7 }, { t: "Electromagnetic Forces", v: 8 }, { t: "Magnetic Properties", v: 4 }] },
+            { title: "Rigid Body Dynamics (RBD)", vids: 0, subs: [{ t: "Rotational Motion", v: 18 }] },
+            { title: "Wave Optics", vids: 11, subs: [] },
+            { title: "Gravitation", vids: 6, subs: [] },
+            { title: "Units & Dimensions", vids: 0, subs: [] }, // No videos specified
+            { title: "Alternating Current (AC)", vids: 6, subs: [] },
+            { title: "Error & Measurement", vids: 5, subs: [] },
+            { title: "Solids & Semiconductors", vids: 0, subs: [{ t: "Semiconductors", v: 9 }, { t: "Communication System", v: 3 }] },
+            { title: "Elasticity & Viscosity", vids: 0, subs: [{ t: "Viscosity", v: 2 }, { t: "Elasticity", v: 3 }] },
+            { title: "NLM & Friction", vids: 0, subs: [{ t: "Newton's Law of Motion", v: 9 }, { t: "Friction", v: 6 }] },
+            { title: "Capacitor", vids: 12, subs: [] },
+            { title: "Electromagnetic Waves", vids: 4, subs: [] },
+            { title: "Work, Power & Energy", vids: 11, subs: [] },
+            { title: "Rectilinear Motion", vids: 0, subs: [{ t: "Rectilinear Motion", v: 9 }, { t: "Kinematics", v: 3 }] },
+            { title: "EMI", vids: 14, subs: [] },
+            { title: "Simple Harmonic Motion", vids: 11, subs: [] },
+            { title: "Circular Motion", vids: 10, subs: [] },
+            { title: "Fluid Mechanics", vids: 9, subs: [] },
+            { title: "Surface Tension", vids: 5, subs: [] },
+            { title: "Center of Mass (COM)", vids: 10, subs: [] },
+            { title: "Projectile Motion", vids: 12, subs: [] },
+            { title: "Sound Waves", vids: 14, subs: [] },
+            { title: "Wave on a String", vids: 12, subs: [] },
+            { title: "Calorimetry & Thermal Exp.", vids: 0, subs: [{ t: "Calorimetry", v: 3 }, { t: "Thermal Expansion", v: 3 }] },
+            { title: "Mathematical Tools", vids: 35, subs: [] },
+            { title: "Heat Transfer", vids: 6, subs: [] },
+            { title: "Relative Motion", vids: 7, subs: [] }
+        ];
+
         const chemData = [
-            { id: "c_mole", name: "Mole Concept", lec: 4 },
-            { id: "c_dilute", name: "Dilute Solution", lec: 4 },
-            { id: "c_electro", name: "Electrochemistry", lec: 5 },
-            { id: "c_kinetics", name: "Chemical Kinetics", lec: 4 },
-            { id: "c_periodic", name: "Periodic Properties", lec: 4 },
-            { id: "c_bonding", name: "Chemical Bonding", lec: 10 },
-            { id: "c_nomen", name: "Nomenclature", lec: 2 },
-            { id: "c_isomer", name: "Isomerism", lec: 3 },
-            { id: "c_goc", name: "GOC", lec: 5 },
-            { id: "c_hydro", name: "Hydrocarbons", lec: 5 },
-            { id: "c_halo", name: "Haloalkanes Haloarenes", lec: 5 },
-            { id: "c_alcohol", name: "Alcohol Phenol Ether", lec: 4 },
-            { id: "c_carbonyl", name: "Carbonyl Compounds", lec: 5 },
-            { id: "c_amines", name: "Amines", lec: 3 },
-            { id: "c_poc", name: "POC", lec: 2 },
-            { id: "c_biomol", name: "Biomolecules", lec: 3 },
-            { id: "c_dfblock", name: "d and f block elements", lec: 4 },
-            { id: "c_coord", name: "Coordination Compounds", lec: 5 },
-            { id: "c_pblock", name: "p block elements", lec: 6 },
-            { id: "c_qualitative", name: "Qualitative Analysis", lec: 2 },
-            { id: "c_metallurgy", name: "Metallurgy", lec: 2 },
-            { id: "c_hydrogen", name: "Hydrogen", lec: 2 },
-            { id: "c_sblock", name: "s block elements", lec: 2 },
-            { id: "c_solid", name: "Solid State", lec: 4 },
-            { id: "c_polymer", name: "Polymer One Shot", oneshot: true },
-            { id: "c_ciel", name: "CIEL One shot", oneshot: true },
-            { id: "c_env", name: "Environmental Chemistry One shot", oneshot: true },
-            { id: "c_stats_chem", name: "Statistics One Shot", oneshot: true }
+            { t: "Mole Concept", v: 4 }, { t: "Dilute Solution", v: 4 }, { t: "Electrochemistry", v: 5 }, 
+            { t: "Chemical Kinetics", v: 4 }, { t: "Periodic Properties", v: 4 }, { t: "Chemical Bonding", v: 10 },
+            { t: "Nomenclature", v: 2 }, { t: "Isomerism", v: 3 }, { t: "GOC", v: 5 }, { t: "Hydrocarbons", v: 5 },
+            { t: "Haloalkanes Haloarenes", v: 5 }, { t: "Alcohol Phenol Ether", v: 4 }, { t: "Carbonyl Compounds", v: 5 },
+            { t: "Amines", v: 3 }, { t: "POC", v: 2 }, { t: "Biomolecules", v: 3 }, { t: "d and f block elements", v: 4 },
+            { t: "Coordination Compounds", v: 5 }, { t: "p block elements", v: 6 }, { t: "Qualitative Analysis", v: 2 },
+            { t: "Metallurgy", v: 2 }, { t: "Hydrogen", v: 2 }, { t: "s block elements", v: 2 }, { t: "Solid State", v: 4 },
+            { t: "Polymer One Shot", v: 1, oneshot: true }, { t: "CIEL One shot", v: 1, oneshot: true }, 
+            { t: "Environmental Chemistry One shot", v: 1, oneshot: true }
         ];
 
         const mathData = [
-            { id: "m_basic", name: "Basic Mathematics", lec: 5 },
-            { id: "m_sets", name: "Sets and Relations", lec: 3 },
-            { id: "m_func", name: "Functions", lec: 5 },
-            { id: "m_itf", name: "ITF", lec: 4 },
-            { id: "m_limits", name: "Limits", lec: 3 },
-            { id: "m_cont", name: "Continuity and Differentiability", lec: 6 },
-            { id: "m_mod", name: "MOD", lec: 2 },
-            { id: "m_aod", name: "AOD", lec: 7 },
-            { id: "m_indef", name: "Indefinite Integration", lec: 5 },
-            { id: "m_def", name: "Definite Integration", lec: 4 },
-            { id: "m_diff", name: "Differential Equation", lec: 5 },
-            { id: "m_auc", name: "AUC", lec: 2 },
-            { id: "m_vector", name: "Vector Algebra", lec: 4 },
-            { id: "m_3d", name: "3D Geometry", lec: 5 },
-            { id: "m_pnc", name: "P and C", lec: 5 },
-            { id: "m_prob", name: "Probability", lec: 5 },
-            { id: "m_straight", name: "Straight Lines", lec: 5 },
-            { id: "m_circles", name: "Circles", lec: 4 },
-            { id: "m_parabola", name: "Parabola", lec: 4 },
-            { id: "m_ellipse", name: "Ellipse and Hyperbola", lec: 7 },
-            { id: "m_complex", name: "Complex Numbers", lec: 6 },
-            { id: "m_stats", name: "Statistics One Shot", oneshot: true }
+            { t: "Basic Mathematics", v: 5 }, { t: "Sets and Relations", v: 3 }, { t: "Functions", v: 5 },
+            { t: "ITF", v: 4 }, { t: "Limits", v: 3 }, { t: "Continuity and Differentiability", v: 6 },
+            { t: "MOD", v: 2 }, { t: "AOD", v: 7 }, { t: "Indefinite Integration", v: 5 }, 
+            { t: "Definite Integration", v: 4 }, { t: "Differential Equation", v: 5 }, { t: "AUC", v: 2 },
+            { t: "Vector Algebra", v: 4 }, { t: "3D Geometry", v: 5 }, { t: "P and C", v: 5 },
+            { t: "Probability", v: 5 }, { t: "Straight Lines", v: 5 }, { t: "Circles", v: 4 },
+            { t: "Parabola", v: 4 }, { t: "Ellipse and Hyperbola", v: 7 }, { t: "Complex Numbers", v: 6 },
+            { t: "Statistics One Shot", v: 1, oneshot: true }
         ];
 
-        const physicsData = [
-            { id: "p_mod", name: "Modern Physics", subtopics: [
-                { name: "Photoelectric Effect", vids: 6 },
-                { name: "Bohr's Model", vids: 9 },
-                { name: "X-ray", vids: 3 },
-                { name: "Nuclear Physics", vids: 8 }
-            ]},
-            { id: "p_ktg", name: "KTG & Thermodynamics", subtopics: [
-                { name: "Kinetic Theory of Gases", vids: 3 },
-                { name: "Thermodynamics", vids: 6 }
-            ]},
-            { id: "p_curr", name: "Current Electricity", subtopics: [
-                { name: "Current Electricity", vids: 16 }
-            ]},
-            { id: "p_electro", name: "Electrostatics", subtopics: [
-                { name: "Electrostatics", vids: 33 },
-                { name: "Conductors (Electrostatics)", vids: 4 }
-            ]},
-            { id: "p_optics", name: "Geometrical Optics", subtopics: [
-                { name: "Geometrical Optics", vids: 70 },
-                { name: "Optical Instruments", vids: 7 }
-            ]},
-            { id: "p_mag", name: "Magnetic Effects of Current", subtopics: [
-                { name: "Magnetic Effect of Current (EMF)", vids: 7 },
-                { name: "Electromagnetic Forces (EMF)", vids: 8 },
-                { name: "Magnetic Properties Of Matter", vids: 4 }
-            ]},
-            { id: "p_rbd", name: "Rigid Body Dynamics (RBD)", subtopics: [
-                { name: "Rotational Motion", vids: 18 }
-            ]},
-            { id: "p_waveopt", name: "Wave Optics", subtopics: [
-                { name: "Wave Optics", vids: 11 }
-            ]},
-            { id: "p_grav", name: "Gravitation", subtopics: [
-                { name: "Gravitation", vids: 6 }
-            ]},
-            { id: "p_units", name: "Units & Dimensions", subtopics: [
-                { name: "Units & Dimensions", vids: 36 }
-            ]},
-            { id: "p_ac", name: "Alternating Current (AC)", subtopics: [
-                { name: "Alternating Current", vids: 6 }
-            ]},
-            { id: "p_err", name: "Error & Measurement", subtopics: [
-                { name: "Error & Measurement", vids: 5 }
-            ]},
-            { id: "p_semi", name: "Solids & Semiconductors", subtopics: [
-                { name: "Semiconductors", vids: 9 },
-                { name: "Communication System", vids: 3 }
-            ]},
-            { id: "p_elast", name: "Elasticity & Viscosity", subtopics: [
-                { name: "Viscosity", vids: 2 },
-                { name: "Elasticity", vids: 3 }
-            ]},
-            { id: "p_nlm", name: "NLM & Friction", subtopics: [
-                { name: "Newton's Law of Motion", vids: 9 },
-                { name: "Friction", vids: 6 }
-            ]},
-            { id: "p_cap", name: "Capacitor", subtopics: [
-                { name: "Capacitance", vids: 12 }
-            ]},
-            { id: "p_emw", name: "Electromagnetic Waves", subtopics: [
-                { name: "Electromagnetic Waves (EMW)", vids: 4 }
-            ]},
-            { id: "p_wpe", name: "Work, Power & Energy", subtopics: [
-                { name: "Work Power Energy (WPE)", vids: 11 }
-            ]},
-            { id: "p_rect", name: "Rectilinear Motion", subtopics: [
-                { name: "Rectilinear Motion", vids: 9 },
-                { name: "Kinematics", vids: 3 }
-            ]},
-            { id: "p_emi", name: "EMI", subtopics: [
-                { name: "Electromagnetic Induction", vids: 14 }
-            ]},
-            { id: "p_shm", name: "Simple Harmonic Motion", subtopics: [
-                { name: "Simple Harmonic Motion (SHM)", vids: 11 }
-            ]},
-            { id: "p_circ", name: "Circular Motion", subtopics: [
-                { name: "Circular Motion", vids: 10 }
-            ]},
-            { id: "p_fluid", name: "Fluid Mechanics", subtopics: [
-                { name: "Fluid Mechanics", vids: 9 }
-            ]},
-            { id: "p_surf", name: "Surface Tension", subtopics: [
-                { name: "Surface Tension", vids: 5 }
-            ]},
-            { id: "p_com", name: "Center of Mass (COM)", subtopics: [
-                { name: "Center of Mass (COM)", vids: 10 }
-            ]},
-            { id: "p_proj", name: "Projectile Motion", subtopics: [
-                { name: "Projectile Motion", vids: 12 }
-            ]},
-            { id: "p_snd", name: "Sound Waves", subtopics: [
-                { name: "Sound Wave", vids: 14 }
-            ]},
-            { id: "p_str", name: "Wave on a String", subtopics: [
-                { name: "Wave on String", vids: 12 }
-            ]},
-            { id: "p_cal", name: "Calorimetry & Thermal Exp.", subtopics: [
-                { name: "Calorimetry", vids: 3 },
-                { name: "Thermal Expansion", vids: 3 }
-            ]},
-            { id: "p_math", name: "Mathematical Tools", subtopics: [
-                { name: "Mathematical Tools", vids: 35 }
-            ]},
-            { id: "p_heat", name: "Heat Transfer", subtopics: [
-                { name: "Heat Transfer", vids: 6 }
-            ]},
-            { id: "p_rel", name: "Relative Motion", subtopics: [
-                { name: "Relative Motion", vids: 7 }
-            ]}
-        ];
-
-        // --- GENERATORS ---
-        function generateMathChemTasks(topicData) {
+        function generatePhysics() {
             let topics = [];
-            topicData.forEach(item => {
+            physicsData.forEach((ch, chIdx) => {
                 let sections = [];
-                let dailyTasks = [];
+                let subtopics = ch.subs.length > 0 ? ch.subs : [{ t: ch.title, v: ch.vids }];
                 
-                if (item.oneshot) {
-                    dailyTasks.push({ id: `${item.id}_l1`, title: item.name, type: "lecture" });
-                    dailyTasks.push({ id: `${item.id}_dpp1`, title: "Daily Practice Problem (DPP)", type: "dpp" });
-                } else {
-                    for(let i=1; i<=item.lec; i++) {
-                        dailyTasks.push({ id: `${item.id}_l${i}`, title: `${item.name} L-${i}`, type: "lecture" });
-                        dailyTasks.push({ id: `${item.id}_dpp${i}`, title: `DPP for L-${i}`, type: "dpp" });
+                subtopics.forEach((sub, subIdx) => {
+                    if(sub.v === 0) return; // Skip if no videos
+                    let tasks = [];
+                    // 1. Add Videos
+                    for(let i=1; i<=sub.v; i++) {
+                        tasks.push({ id: `p_${chIdx}_${subIdx}_v${i}`, title: `Video ${i}`, type: 'video' });
+                    }
+                    // 2. Add subtopic specific practice & tests (Always add for every subtopic!)
+                    tasks.push({ id: `p_${chIdx}_${subIdx}_res`, title: "Resonance Module", type: 'practice' });
+                    tasks.push({ id: `p_${chIdx}_${subIdx}_test`, title: "Chapter-wise Test", type: 'test' });
+                    tasks.push({ id: `p_${chIdx}_${subIdx}_pyq`, title: "Chapter-wise PYQs", type: 'pyq' });
+                    
+                    sections.push({ title: sub.t, tasks: tasks });
+                });
+                if(sections.length > 0) topics.push({ id: `phy_${chIdx}`, title: ch.title, sections: sections });
+            });
+            return topics;
+        }
+
+        function generateStandard(dataArr, prefix) {
+            return dataArr.map((ch, idx) => {
+                let tasks = [];
+                for(let i=1; i<=ch.v; i++) {
+                    let title = ch.oneshot ? ch.t : `${ch.t} L-${i}`;
+                    tasks.push({ id: `${prefix}_${idx}_l${i}`, title: title, type: 'lecture' });
+                    if (!ch.oneshot) {
+                        tasks.push({ id: `${prefix}_${idx}_dpp${i}`, title: `DPP ${i}`, type: 'dpp' });
                     }
                 }
-                dailyTasks.push({ id: `${item.id}_p1`, title: "Practise Session Level - 1", type: "practice" });
-                dailyTasks.push({ id: `${item.id}_p2`, title: "Practise Session Level - 2", type: "practice" });
-                
-                sections.push({ title: "Daily Lectures & Practice", tasks: dailyTasks });
-                sections.push({
-                    title: "Chapter Assessments",
-                    tasks: [
-                        { id: `${item.id}_test`, title: "Chapter-wise Test", type: "test" },
-                        { id: `${item.id}_pyq`, title: "Chapter-wise PYQs", type: "pyq" }
-                    ]
-                });
-
-                topics.push({ id: item.id, title: item.name, sections: sections });
+                let assess = [
+                    { id: `${prefix}_${idx}_p1`, title: "Practise Session Level - 1", type: 'practice' },
+                    { id: `${prefix}_${idx}_p2`, title: "Practise Session Level - 2", type: 'practice' },
+                    { id: `${prefix}_${idx}_test`, title: "Chapter-wise Test", type: 'test' },
+                    { id: `${prefix}_${idx}_pyq`, title: "Chapter-wise PYQs", type: 'pyq' }
+                ];
+                return {
+                    id: `${prefix}_${idx}`, title: ch.t,
+                    sections: [{ title: "Daily Lectures & Homework", tasks: tasks }, { title: "Chapter Assessments", tasks: assess }]
+                };
             });
-            return topics;
         }
 
-        function generatePhysicsTasks(phyData) {
-            let topics = [];
-            phyData.forEach(chapter => {
-                let sections = [];
-                
-                chapter.subtopics.forEach((sub, subIdx) => {
-                    let subTasks = [];
-                    for(let i=1; i<=sub.vids; i++) {
-                        subTasks.push({ id: `${chapter.id}_s${subIdx}_v${i}`, title: `Video ${i}: ${sub.name}`, type: "video" });
-                    }
-                    subTasks.push({ id: `${chapter.id}_s${subIdx}_res`, title: `Resonance Module: ${sub.name}`, type: "practice" });
-                    subTasks.push({ id: `${chapter.id}_s${subIdx}_test`, title: `Chapter-wise Test: ${sub.name}`, type: "test" });
-                    subTasks.push({ id: `${chapter.id}_s${subIdx}_pyq`, title: `Chapter-wise PYQs: ${sub.name}`, type: "pyq" });
-                    
-                    sections.push({ title: `Subtopic: ${sub.name}`, tasks: subTasks });
-                });
-                
-                topics.push({ id: chapter.id, title: chapter.name, sections: sections });
-            });
-            return topics;
-        }
-
-        const SYLLABUS = {
-            physics: { title: "Physics", color: "orange", topics: generatePhysicsTasks(physicsData) },
-            chemistry: { title: "Chemistry", color: "teal", topics: generateMathChemTasks(chemData) },
-            math: { title: "Mathematics", color: "blue", topics: generateMathChemTasks(mathData) }
+        window.SYLLABUS = {
+            physics: { title: "Physics", color: "orange", topics: generatePhysics() },
+            chemistry: { title: "Chemistry", color: "teal", topics: generateStandard(chemData, 'c') },
+            math: { title: "Mathematics", color: "blue", topics: generateStandard(mathData, 'm') }
         };
 
-        // --- STATE & FIRESTORE SYNC ---
-        let userProgress = {};
+        // --- STATE & AUTH ---
+        window.userProgress = {}; 
+        let currentUser = null;
         let currentView = 'dashboard';
         let currentSubjectId = null;
         let currentTopicId = null;
 
-        const SVG_UNCHECKED = `<svg class="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke-width="2"></circle></svg>`;
-        const SVG_PARTIAL = `<svg class="w-8 h-8 text-yellow-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 000 20V2z" /></svg><svg class="w-8 h-8 text-yellow-500 absolute top-0 left-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke-width="2"></circle></svg>`;
-        const SVG_FULL = `<svg class="w-8 h-8 text-emerald-500" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zm-1.83-5.32l-3.48-3.48a1 1 0 011.41-1.41l2.07 2.07 4.79-5.99a1 1 0 111.56 1.25l-5.64 7.05a.998.998 0 01-1.42.06z" clip-rule="evenodd" /></svg>`;
-
-        function showModal(title, text) {
-            document.getElementById('modalTitle').textContent = title;
-            document.getElementById('modalText').textContent = text;
-            document.getElementById('modal').classList.remove('hidden');
-        }
-
-        function closeModal() {
-            document.getElementById('modal').classList.add('hidden');
-        }
-
-        function loadUserProgress(userId) {
-            if (!window.firebaseDb) return;
-            const docRef = window.doc(window.firebaseDb, 'artifacts', window.firebaseAppId, 'users', userId, 'progress', 'data');
-            window.onSnapshot(docRef, (docSnap) => {
-                if (docSnap.exists()) {
-                    userProgress = docSnap.data().tasks || {};
-                } else {
-                    userProgress = {};
-                }
-                if (currentView === 'dashboard') renderDashboard();
-                else if (currentView === 'subject') renderSubject(currentSubjectId);
-                else if (currentView === 'topic') renderTopic(currentSubjectId, currentTopicId);
-            }, (error) => {
-                console.error("Error reading progress:", error);
-            });
-        }
-
-        function saveUserProgress() {
-            if (!window.currentUser || !window.firebaseDb) return;
-            const userId = window.currentUser.uid;
-            const docRef = window.doc(window.firebaseDb, 'artifacts', window.firebaseAppId, 'users', userId, 'progress', 'data');
-            window.setDoc(docRef, { tasks: userProgress }, { merge: true }).catch((err) => {
-                console.error("Error saving progress:", err);
-            });
-        }
-
-        // --- CALCULATIONS ---
-        function calculateStats(subjectId) {
-            let stats = {
-                learn: { total: 0, completed: 0 },
-                practice: { total: 0, completed: 0 },
-                assess: { total: 0, completed: 0 }
-            };
-
-            SYLLABUS[subjectId].topics.forEach(topic => {
-                topic.sections.forEach(section => {
-                    section.tasks.forEach(task => {
-                        let category = 'practice';
-                        if (task.type === 'lecture' || task.type === 'video') category = 'learn';
-                        if (task.type === 'test' || task.type === 'pyq') category = 'assess';
-
-                        stats[category].total += 1;
-                        let status = userProgress[task.id] || 0;
-                        if (status === 1) stats[category].completed += 0.5;
-                        if (status === 2) stats[category].completed += 1.0;
-                    });
-                });
-            });
-
-            return {
-                learnPct: stats.learn.total ? Math.round((stats.learn.completed / stats.learn.total) * 100) : 0,
-                pracPct: stats.practice.total ? Math.round((stats.practice.completed / stats.practice.total) * 100) : 0,
-                assessPct: stats.assess.total ? Math.round((stats.assess.completed / stats.assess.total) * 100) : 0
-            };
-        }
-
-        // --- UI RENDERING ---
-        const mainContent = document.getElementById('mainContent');
-        const headerTitle = document.getElementById('headerTitle');
-        const backBtn = document.getElementById('backBtn');
-        const bottomNav = document.getElementById('bottomNav');
-        const headerAction = document.getElementById('headerAction');
-
-        function updateHeader(title, showBack) {
-            headerTitle.textContent = title;
-            headerAction.innerHTML = '';
-            if (showBack) {
-                backBtn.classList.remove('hidden');
-                headerTitle.classList.remove('text-center');
-                headerTitle.classList.add('text-left', 'pl-2');
-                bottomNav.classList.add('hidden');
-            } else {
-                backBtn.classList.add('hidden');
-                headerTitle.classList.add('text-center');
-                headerTitle.classList.remove('text-left', 'pl-2');
-                bottomNav.classList.remove('hidden');
-            }
-        }
-
-        function renderLoginScreen() {
-            currentView = 'login';
-            updateHeader('Rebounce 2.0 Login', false);
-            bottomNav.classList.add('hidden');
-            backBtn.classList.add('hidden');
-
-            mainContent.innerHTML = `
-                <div class="fade-in flex flex-col items-center justify-center h-full text-center py-8 px-4">
-                    <div class="w-16 h-16 bg-slate-800 text-white rounded-2xl flex items-center justify-center text-2xl font-bold mb-4 shadow-lg">R2</div>
-                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Welcome Student</h2>
-                    <p class="text-sm text-gray-500 mb-6">Enter your phone number to sign in. Your progress will be saved automatically.</p>
-                    
-                    <div class="w-full max-w-sm space-y-4">
-                        <input type="tel" id="phoneInput" placeholder="Enter 10-digit Phone Number" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-slate-800 text-sm tracking-wide font-medium">
-                        <button onclick="handleLogin()" class="w-full bg-slate-800 text-white py-3 rounded-xl font-medium shadow-md hover:bg-slate-700 transition">Sign In</button>
-                    </div>
-                </div>
-            `;
-        }
-
-        async function handleLogin() {
-            const phone = document.getElementById('phoneInput').value.trim();
+        window.handlePhoneSignIn = async function() {
+            if(!auth) { alert("Firebase not configured. Please add keys to code."); return; }
             
-            // Basic validation
-            if (phone.length < 10) {
-                showModal("Input Required", "Please enter a valid phone number (at least 10 digits).");
+            const phoneStr = document.getElementById('phoneInput').value.trim();
+            const msgEl = document.getElementById('loginMessage');
+            
+            if(phoneStr.length < 8) {
+                msgEl.textContent = 'Please enter a valid phone number.';
+                msgEl.className = 'text-sm text-center mt-4 text-red-500 block';
                 return;
             }
 
-            // Show loading state on button
-            const btn = document.querySelector('button[onclick="handleLogin()"]');
-            const originalText = btn.textContent;
-            btn.textContent = "Signing In...";
+            // DUMMY CONVERSION (No OTP required)
+            const dummyEmail = `${phoneStr}@rebouncetracker.app`;
+            const dummyPassword = `R2Secret_${phoneStr}`;
+
+            const btn = document.getElementById('signInBtn');
+            btn.textContent = 'Signing in securely...';
             btn.disabled = true;
 
-            // We use Email/Password auth under the hood to bypass OTP requirements seamlessly.
-            const dummyEmail = `${phone}@rebouncetracker.app`;
-            const dummyPassword = `R2-Tracker-${phone}`;
-
             try {
-                // Try to sign in first
-                await window.signInWithEmailAndPassword(window.firebaseAuth, dummyEmail, dummyPassword);
-                closeModal(); // Clean up just in case
+                // Try logging in existing user
+                await signInWithEmailAndPassword(auth, dummyEmail, dummyPassword);
+                // SUCCESS - auth state listener will handle the rest
             } catch (error) {
-                try {
-                    // If sign in fails (user doesn't exist), immediately create the account
-                    await window.createUserWithEmailAndPassword(window.firebaseAuth, dummyEmail, dummyPassword);
-                    closeModal();
-                } catch (createError) {
-                    showModal("Sign-In Error", "Could not sign in. Please try again.");
-                    btn.textContent = originalText;
+                // If user doesn't exist, instantly create them
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
+                    try {
+                        await createUserWithEmailAndPassword(auth, dummyEmail, dummyPassword);
+                        // SUCCESS - Created new account based on phone
+                    } catch (createError) {
+                        msgEl.textContent = 'Error creating account.';
+                        msgEl.className = 'text-sm text-center mt-4 text-red-500 block';
+                        btn.textContent = 'Sign In';
+                        btn.disabled = false;
+                    }
+                } else {
+                    msgEl.textContent = 'Error connecting to server.';
+                    msgEl.className = 'text-sm text-center mt-4 text-red-500 block';
+                    btn.textContent = 'Sign In';
                     btn.disabled = false;
                 }
             }
         }
 
-        function renderDashboard() {
-            currentView = 'dashboard';
-            updateHeader('My Schedule', false);
-            
-            let html = `<div class="fade-in space-y-4">
-                <p class="text-sm text-gray-500 mb-2">Select a subject to track your daily progress.</p>`;
+        window.handleSignOut = function() {
+            if(auth) signOut(auth);
+            window.userProgress = {};
+        }
 
-            Object.keys(SYLLABUS).forEach(subId => {
-                const sub = SYLLABUS[subId];
-                const stats = calculateStats(subId);
+        async function saveProgressToCloud() {
+            if(!currentUser || !db) return;
+            try {
+                await setDoc(doc(db, "users", currentUser.uid), { progress: window.userProgress }, { merge: true });
+            } catch(e) { console.error("Save error", e); }
+        }
+
+        async function loadProgressFromCloud() {
+            if(!currentUser || !db) return;
+            try {
+                const docSnap = await getDoc(doc(db, "users", currentUser.uid));
+                if (docSnap.exists()) window.userProgress = docSnap.data().progress || {};
+            } catch(e) { console.error("Load error", e); }
+        }
+
+        if(auth) {
+            onAuthStateChanged(auth, async (user) => {
+                document.getElementById('loadingView').classList.add('hidden');
                 
-                let colorClass = 'bg-teal-500';
-                if (sub.color === 'blue') colorClass = 'bg-blue-500';
-                if (sub.color === 'orange') colorClass = 'bg-orange-500';
+                if (user) {
+                    currentUser = user;
+                    // Extract phone number from our dummy email
+                    let phoneStr = user.email.split('@')[0];
+                    document.getElementById('profilePhoneDisplay').textContent = phoneStr;
+                    
+                    document.getElementById('loginView').classList.add('hidden');
+                    document.getElementById('mainHeader').classList.remove('hidden');
+                    document.getElementById('mainContent').classList.remove('hidden');
+                    document.getElementById('bottomNav').classList.remove('hidden');
+                    
+                    await loadProgressFromCloud();
+                    if(currentView === 'dashboard') renderDashboard();
+                    else if (currentView === 'subject') renderSubject(currentSubjectId);
+                    else if (currentView === 'topic') renderTopic(currentSubjectId, currentTopicId);
+                } else {
+                    currentUser = null;
+                    document.getElementById('loginView').classList.remove('hidden');
+                    document.getElementById('mainHeader').classList.add('hidden');
+                    document.getElementById('mainContent').classList.add('hidden');
+                    document.getElementById('bottomNav').classList.add('hidden');
+                    document.getElementById('profileOverlay').classList.add('hidden');
+                    
+                    // Reset login button state
+                    const btn = document.getElementById('signInBtn');
+                    btn.textContent = 'Sign In';
+                    btn.disabled = false;
+                    document.getElementById('phoneInput').value = '';
+                }
+            });
+        } else {
+            // Offline/Preview Mode
+            document.getElementById('loadingView').classList.add('hidden');
+            document.getElementById('loginView').classList.add('hidden');
+            document.getElementById('mainHeader').classList.remove('hidden');
+            document.getElementById('mainContent').classList.remove('hidden');
+            document.getElementById('bottomNav').classList.remove('hidden');
+            window.renderDashboard();
+        }
+
+        // --- SVGs ---
+        const SVG_UNCHECKED = `<svg class="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke-width="2"></circle></svg>`;
+        const SVG_PARTIAL = `<svg class="w-8 h-8 text-yellow-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 000 20V2z" /></svg><svg class="w-8 h-8 text-yellow-500 absolute top-0 left-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke-width="2"></circle></svg>`;
+        const SVG_FULL = `<svg class="w-8 h-8 text-emerald-500" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zm-1.83-5.32l-3.48-3.48a1 1 0 011.41-1.41l2.07 2.07 4.79-5.99a1 1 0 111.56 1.25l-5.64 7.05a.998.998 0 01-1.42.06z" clip-rule="evenodd" /></svg>`;
+
+        function calculateStats(subjectId) {
+            let stats = { learn: { t: 0, c: 0 }, practice: { t: 0, c: 0 }, assess: { t: 0, c: 0 } };
+            window.SYLLABUS[subjectId].topics.forEach(topic => {
+                topic.sections.forEach(sec => {
+                    sec.tasks.forEach(task => {
+                        let cat = 'practice';
+                        if (task.type === 'lecture' || task.type === 'video') cat = 'learn';
+                        if (task.type === 'test' || task.type === 'pyq') cat = 'assess';
+
+                        stats[cat].t += 1;
+                        let status = window.userProgress[task.id] || 0;
+                        if (status === 1) stats[cat].c += 0.5;
+                        if (status === 2) stats[cat].c += 1.0;
+                    });
+                });
+            });
+            return {
+                learnPct: stats.learn.t ? Math.round((stats.learn.c / stats.learn.t) * 100) : 0,
+                pracPct: stats.practice.t ? Math.round((stats.practice.c / stats.practice.t) * 100) : 0,
+                assessPct: stats.assess.t ? Math.round((stats.assess.c / stats.assess.t) * 100) : 0
+            };
+        }
+
+        window.showDashboard = function() {
+            document.getElementById('profileOverlay').classList.add('hidden');
+            document.getElementById('mainContent').classList.remove('hidden');
+            renderDashboard();
+        }
+
+        window.showProfile = function() {
+            document.getElementById('mainContent').classList.add('hidden');
+            document.getElementById('profileOverlay').classList.remove('hidden');
+            document.getElementById('headerTitle').textContent = 'Profile';
+        }
+
+        window.renderDashboard = function() {
+            currentView = 'dashboard';
+            document.getElementById('headerTitle').textContent = 'My Schedule';
+            document.getElementById('backBtn').classList.add('hidden');
+            
+            let html = `<div class="fade-in space-y-4"><p class="text-sm text-gray-500 mb-2">Select a subject to track your daily progress.</p>`;
+
+            Object.keys(window.SYLLABUS).forEach(subId => {
+                const sub = window.SYLLABUS[subId];
+                const stats = calculateStats(subId);
+                let colorClass = sub.color === 'blue' ? 'bg-blue-500' : (sub.color === 'orange' ? 'bg-orange-500' : 'bg-teal-500');
 
                 html += `
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 cursor-pointer hover:shadow-md transition active:scale-[0.98]" onclick="renderSubject('${subId}')">
                         <div class="flex justify-between items-center mb-4">
                             <h2 class="text-xl font-bold text-gray-800">${sub.title}</h2>
                             <div class="w-10 h-10 rounded-full ${colorClass} text-white flex items-center justify-center shadow-inner">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                                </svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
                             </div>
                         </div>
-                        ${renderProgressBar('Lectures / Videos', stats.learnPct, colorClass)}
-                        ${renderProgressBar('Practice Modules', stats.pracPct, colorClass)}
-                        ${renderProgressBar('Tests & PYQs', stats.assessPct, colorClass)}
-                    </div>
-                `;
+                        <div class="mb-3"><div class="flex justify-between text-xs mb-1 font-medium text-gray-600"><span>Lectures / Videos</span><span>${stats.learnPct}%</span></div><div class="w-full bg-gray-200 rounded-full h-2"><div class="${colorClass} h-2 rounded-full transition-all duration-500" style="width: ${stats.learnPct}%"></div></div></div>
+                        <div class="mb-3"><div class="flex justify-between text-xs mb-1 font-medium text-gray-600"><span>Practice Modules & DPPs</span><span>${stats.pracPct}%</span></div><div class="w-full bg-gray-200 rounded-full h-2"><div class="${colorClass} h-2 rounded-full transition-all duration-500" style="width: ${stats.pracPct}%"></div></div></div>
+                        <div class="mb-3"><div class="flex justify-between text-xs mb-1 font-medium text-gray-600"><span>Tests & PYQs</span><span>${stats.assessPct}%</span></div><div class="w-full bg-gray-200 rounded-full h-2"><div class="${colorClass} h-2 rounded-full transition-all duration-500" style="width: ${stats.assessPct}%"></div></div></div>
+                    </div>`;
             });
-
-            html += `</div>`;
-            mainContent.innerHTML = html;
+            document.getElementById('mainContent').innerHTML = html + `</div>`;
         }
 
-        function renderSubject(subjectId) {
+        window.renderSubject = function(subjectId) {
             currentView = 'subject';
             currentSubjectId = subjectId;
-            const sub = SYLLABUS[subjectId];
-            updateHeader(sub.title, true);
+            const sub = window.SYLLABUS[subjectId];
+            document.getElementById('headerTitle').textContent = sub.title;
+            document.getElementById('backBtn').classList.remove('hidden');
 
-            let html = `<div class="fade-in space-y-3">
-                <div class="bg-slate-100 text-slate-700 text-xs px-4 py-3 rounded-xl mb-4 font-medium flex items-start">
-                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                   Select a chapter below to view subtopics, videos, and tests.
-                </div>
-            `;
+            let html = `<div class="fade-in space-y-3"><div class="bg-slate-100 text-slate-700 text-xs px-4 py-3 rounded-xl mb-4 font-medium flex items-start"><svg class="h-4 w-4 mr-2 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>Select a chapter below to mark your progress.</div>`;
 
             sub.topics.forEach(topic => {
-                let total = 0; let completed = 0;
-                topic.sections.forEach(sec => {
-                    sec.tasks.forEach(t => {
-                        total++;
-                        if(userProgress[t.id] === 1) completed += 0.5;
-                        if(userProgress[t.id] === 2) completed += 1;
-                    });
-                });
+                let total = 0, completed = 0;
+                topic.sections.forEach(sec => sec.tasks.forEach(t => {
+                    total++;
+                    if(window.userProgress[t.id] === 1) completed += 0.5;
+                    if(window.userProgress[t.id] === 2) completed += 1;
+                }));
                 let pct = total ? Math.round((completed/total)*100) : 0;
-                
-                let borderColor = pct === 100 ? 'border-emerald-400' : 'border-gray-200';
-                let iconColor = pct === 100 ? 'text-emerald-500' : 'text-gray-400';
+                let bColor = pct === 100 ? 'border-emerald-400' : 'border-gray-200';
+                let iColor = pct === 100 ? 'text-emerald-500' : 'text-gray-400';
 
                 html += `
-                    <div class="bg-white rounded-xl border ${borderColor} p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition active:bg-gray-100 shadow-sm" onclick="renderTopic('${subjectId}', '${topic.id}')">
+                    <div class="bg-white rounded-xl border ${bColor} p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 active:bg-gray-100 shadow-sm" onclick="renderTopic('${subjectId}', '${topic.id}')">
                         <div class="flex-1 pr-4">
                             <h3 class="text-md font-semibold text-gray-800 mb-1">${topic.title}</h3>
-                            <div class="w-full bg-gray-200 rounded-full h-1.5 mt-2">
-                                <div class="bg-slate-700 h-1.5 rounded-full" style="width: ${pct}%"></div>
-                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-1.5 mt-2"><div class="bg-slate-700 h-1.5 rounded-full" style="width: ${pct}%"></div></div>
                         </div>
-                        <div class="${iconColor}">
-                            ${pct === 100 
-                                ? `<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>`
-                                : `<span class="text-xs font-bold">${pct}%</span>`
-                            }
+                        <div class="${iColor}">
+                            ${pct === 100 ? `<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>` : `<span class="text-xs font-bold">${pct}%</span>`}
                         </div>
-                    </div>
-                `;
+                    </div>`;
             });
-
-            html += `</div>`;
-            mainContent.innerHTML = html;
+            document.getElementById('mainContent').innerHTML = html + `</div>`;
         }
 
-        function renderTopic(subjectId, topicId) {
+        window.renderTopic = function(subjectId, topicId) {
             currentView = 'topic';
             currentTopicId = topicId;
-            const sub = SYLLABUS[subjectId];
+            const sub = window.SYLLABUS[subjectId];
             const topic = sub.topics.find(t => t.id === topicId);
-            
-            updateHeader(topic.title, true);
+            document.getElementById('headerTitle').textContent = topic.title;
 
-            let html = `<div class="fade-in">
-                <div class="flex justify-end items-center mb-4 px-1">
-                    <span class="text-[10px] text-gray-500 italic">Tap twice for full complete</span>
-                </div>
-            `;
+            let html = `<div class="fade-in"><div class="flex justify-end items-center mb-4 px-1"><span class="text-[10px] text-gray-500 italic">Tap twice for full complete</span></div>`;
 
             topic.sections.forEach(section => {
-                html += `
-                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1 mt-6">${section.title}</h3>
-                    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mb-4">
-                `;
+                html += `<h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1 mt-6">${section.title}</h3><div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mb-4">`;
 
                 section.tasks.forEach((task, index) => {
-                    let status = userProgress[task.id] || 0;
+                    let status = window.userProgress[task.id] || 0;
                     let svg = status === 2 ? SVG_FULL : (status === 1 ? SVG_PARTIAL : SVG_UNCHECKED);
-                    let textClass = status === 2 ? 'text-gray-400 line-through' : 'text-gray-800';
-                    let borderClass = index !== section.tasks.length - 1 ? 'border-b border-gray-100' : '';
+                    let tClass = status === 2 ? 'text-gray-400 line-through' : 'text-gray-800';
+                    let bClass = index !== section.tasks.length - 1 ? 'border-b border-gray-100' : '';
                     
-                    let badgeColor = 'bg-gray-100 text-gray-500';
-                    if(task.type === 'lecture') badgeColor = 'bg-blue-50 text-blue-600';
-                    if(task.type === 'video') badgeColor = 'bg-red-50 text-red-600';
-                    if(task.type === 'practice') badgeColor = 'bg-orange-50 text-orange-600';
-                    if(task.type === 'dpp') badgeColor = 'bg-pink-50 text-pink-600';
-                    if(task.type === 'test') badgeColor = 'bg-purple-50 text-purple-600';
-                    if(task.type === 'pyq') badgeColor = 'bg-emerald-50 text-emerald-600';
-
-                    let badgeText = task.type.toUpperCase();
+                    let bg = 'bg-gray-100 text-gray-500';
+                    if(task.type === 'lecture') bg = 'bg-blue-50 text-blue-600';
+                    if(task.type === 'video') bg = 'bg-red-50 text-red-600';
+                    if(task.type === 'dpp') bg = 'bg-pink-50 text-pink-600';
+                    if(task.type === 'practice') bg = 'bg-orange-50 text-orange-600';
+                    if(task.type === 'test') bg = 'bg-purple-50 text-purple-600';
+                    if(task.type === 'pyq') bg = 'bg-emerald-50 text-emerald-600';
 
                     html += `
-                        <div class="flex items-center p-4 ${borderClass} active:bg-gray-50 transition" onclick="toggleTask('${task.id}')">
-                            <div class="mr-4 relative w-8 h-8 shrink-0 flex items-center justify-center cursor-pointer">
-                                ${svg}
-                            </div>
+                        <div class="flex items-center p-4 ${bClass} active:bg-gray-50 transition" onclick="toggleTask('${task.id}')">
+                            <div class="mr-4 relative w-8 h-8 shrink-0 flex items-center justify-center cursor-pointer">${svg}</div>
                             <div class="flex-1 min-w-0">
-                                <h4 class="text-sm font-medium ${textClass}">${task.title}</h4>
-                                <span class="inline-block mt-1.5 text-[9px] font-bold tracking-wider px-2 py-0.5 rounded ${badgeColor}">${badgeText}</span>
+                                <h4 class="text-sm font-medium ${tClass}">${task.title}</h4>
+                                <span class="inline-block mt-1.5 text-[9px] font-bold tracking-wider px-2 py-0.5 rounded ${bg}">${task.type.toUpperCase()}</span>
                             </div>
                             ${status === 1 ? `<span class="text-[10px] text-yellow-600 font-bold bg-yellow-50 px-2 py-1 rounded ml-2 shrink-0">PARTIAL</span>` : ''}
-                        </div>
-                    `;
+                        </div>`;
                 });
-                
                 html += `</div>`;
             });
-
-            html += `</div>`;
-            mainContent.innerHTML = html;
+            document.getElementById('mainContent').innerHTML = html + `</div>`;
         }
 
-        function renderProfile() {
-            currentView = 'profile';
-            updateHeader('Student Profile', false);
-            bottomNav.classList.remove('hidden');
-
-            // Extract the phone number back out of the dummy email
-            const phone = window.currentUser ? window.currentUser.email.split('@')[0] : 'Not signed in';
-
-            mainContent.innerHTML = `
-                <div class="fade-in space-y-4">
-                    <div class="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm text-center">
-                        <div class="w-16 h-16 bg-indigo-100 text-indigo-700 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-3">
-                            ${phone.charAt(0).toUpperCase()}
-                        </div>
-                        <h3 class="text-md font-bold text-gray-800 mb-1">Logged In User</h3>
-                        <p class="text-xs text-gray-500 mb-4 tracking-wider font-medium">+91 ${phone}</p>
-                        <button onclick="handleLogout()" class="bg-red-50 text-red-600 border border-red-200 px-4 py-2 rounded-xl text-xs font-semibold hover:bg-red-100 transition">Sign Out</button>
-                    </div>
-                </div>
-            `;
-        }
-
-        function handleLogout() {
-            window.signOut(window.firebaseAuth).then(() => {
-                renderLoginScreen();
-            });
-        }
-
-        function toggleTask(taskId) {
-            let currentStatus = userProgress[taskId] || 0;
-            userProgress[taskId] = (currentStatus + 1) % 3;
-            saveUserProgress();
+        window.toggleTask = function(taskId) {
+            let s = window.userProgress[taskId] || 0;
+            window.userProgress[taskId] = (s + 1) % 3;
             renderTopic(currentSubjectId, currentTopicId);
+            saveProgressToCloud(); // Auto-save on every click
         }
 
-        function goBack() {
+        window.goBack = function() {
             if (currentView === 'topic') renderSubject(currentSubjectId);
             else if (currentView === 'subject') renderDashboard();
         }
 
-        function renderProgressBar(label, percentage, colorClass) {
-            return `
-                <div class="mb-3">
-                    <div class="flex justify-between text-xs mb-1 font-medium text-gray-600">
-                        <span>${label}</span>
-                        <span>${percentage}%</span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="${colorClass} h-2 rounded-full transition-all duration-500 ease-out" style="width: ${percentage}%"></div>
-                    </div>
-                </div>
-            `;
-        }
     </script>
 </body>
 </html>
